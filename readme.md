@@ -1,5 +1,7 @@
 # Hanayo
 
+![](res/img/logo.png)
+
 Hanayo is an experimental HOCON parser written in plain Java for exercising and school homework.
 
 HOCON is a human-readable config format. Specs: [HOCON Spec][spec] (that repo also hosts the official java implementation).
