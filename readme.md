@@ -8,6 +8,12 @@ Hanayo is an experimental HOCON parser written in plain Java for exercising and 
 
 HOCON is a human-readable config format. Specs: [HOCON Spec][spec] (that repo also hosts the official java implementation).
 
+## Develop
+
+Hanayo requires at lease Java 11 to compile and run.
+
+## Notes
+
 To make coding easier, some feature of HOCON were changed, as listed below:
 
 - Hanayo uses an "early replace" strategy of value concatenation, opposing to the "read all then replace" strategy in the spec.
