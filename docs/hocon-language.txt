@@ -1,5 +1,7 @@
 EOL -> '\n' | '\r' | '\r\n'
 
+Whitespace -> ' ' | '\t'
+
 EscapedSequence -> 
   | '\\' [bfnrt\\] 
   | '\u' [0-9a-fA-F]{4}
@@ -8,25 +10,15 @@ QuotedStringElement ->
   | [^\\"] 
   | EscapedSequence
 
-QuotedStringElements ->
-  | QuotedStringElement
-  | QuotedStringElement QuotedStringElements
-
 QuotedString -> 
-  | '"' QuotedStringElements '"'
+  | '"' QuotedStringElement* '"'
   | '""'
 
-UnquotedStringElement -> [^$"{}\[\]:=,+#`\^?!@#&\\]
+UnquotedString -> [^$"{}\[\]:=,+#`\^?!@#&\\]+
 
-UnquotedString -> 
-  | UnquotedStringElement
-  | UnquotedStringElement UnquotedString
+MultilineString -> '"""' .* '"""'
 
-MultilineStringElement -> *
-
-MultilineString -> '"""' MultilineStringElement '"""'
-
-Numerical -> [0-9]
+Numerical -> [0-9]+
 
 Number -> 
   | Numerical
@@ -75,19 +67,17 @@ Substitution ->
   | NonDeterminedSubstitution
 
 ValueSegment -> 
-  | UnquotedString
-  | QuotedString
-  | MultilineString
   | Number
   | Duration
   | Size
   | List
   | Map
   | Substitution
+  | UnquotedString
+  | QuotedString
+  | MultilineString
 
-Value -> 
-  | ValueSegment 
-  | ValueSegment Value
+Value -> ValueSegment ( Whitespace? ValueSegment )*
 
 Separator -> ':' | '='
 
@@ -96,8 +86,8 @@ KeyValuePair ->
   | Key Map
 
 ElementSeparator -> 
-  | Whitespace? EOL Whitespace? 
-  | Whitespace? ',' Whitespace? 
+  | Whitespace? EOL Whitespace?
+  | Whitespace? ',' Whitespace?
   | Whitespace? ',' Whitespace? EOL Whitespace? 
 
 KeyValuePairs ->  
@@ -115,6 +105,7 @@ Values ->
 Array -> '[' Whitespace? Values Whitespace? ']'
 
 Document ->
-  | Whitespace? KeyValuePairs Whitespace? #
-  | Whitespace? Map Whitespace? #
-  | Whitespace? Array Whitespace? #
+  | Whitespace? EOF
+  | Whitespace? KeyValuePairs Whitespace? EOF
+  | Whitespace? Map Whitespace? EOF
+  | Whitespace? Array Whitespace? EOF
