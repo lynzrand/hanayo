@@ -11,7 +11,7 @@ public class HoconParser {
   /**
    * End delimiters of HOCON keys
    */
-  private static final char[] KEY_END_DELIMITERS = new char[] { '.', ':', '=', '{' };
+  static final char[] KEY_END_DELIMITERS = new char[] { '.', ':', '=', '{' };
 
   static public IHoconElement parse(String src) {
     // throw new RuntimeException("Method not implemented");
@@ -54,7 +54,6 @@ public class HoconParser {
    * @throws IOException
    */
   static HoconKey readKey(final PushbackReader reader) throws IOException {
-    reader.mark(1);
     String keyString;
     int c;
     if ((c = reader.read()) == '"')
@@ -175,6 +174,6 @@ public class HoconParser {
 
       sb.append(c);
     }
-    return sb.toString();
+    return sb.toString().trim();
   }
 }
