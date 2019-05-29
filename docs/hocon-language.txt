@@ -1,0 +1,120 @@
+EOL -> '\n' | '\r' | '\r\n'
+
+EscapedSequence -> 
+  | '\\' [bfnrt\\] 
+  | '\u' [0-9a-fA-F]{4}
+
+QuotedStringElement -> 
+  | [^\\"] 
+  | EscapedSequence
+
+QuotedStringElements ->
+  | QuotedStringElement
+  | QuotedStringElement QuotedStringElements
+
+QuotedString -> 
+  | '"' QuotedStringElements '"'
+  | '""'
+
+UnquotedStringElement -> [^$"{}\[\]:=,+#`\^?!@#&\\]
+
+UnquotedString -> 
+  | UnquotedStringElement
+  | UnquotedStringElement UnquotedString
+
+MultilineStringElement -> *
+
+MultilineString -> '"""' MultilineStringElement '"""'
+
+Numerical -> [0-9]
+
+Number -> 
+  | Numerical
+  | Numerical '.' Numerical
+  | Numerical '.' [Ee] [+-]? Numerical
+  | Numerical '.' Numerical [Ee] [+-]? Numerical
+
+DurationUnit ->
+  | 'ns' | 'nanosecond' | 'nanoseconds'
+  | 'us' | 'microsecond' | 'microseconds'
+  | 'ms' | 'millisecond' | 'milliseconds'
+  | 's' | 'second' | 'seconds'
+  | 'm' | 'minute' | 'minutes'
+  | 'h' | 'hour' | 'hours'
+  | 'd' | 'day' | 'days'
+
+Duration -> Number DurationUnit
+
+SizeUnit ->
+  | 'B' | 'b' | 'byte' | 'bytes'
+  | ‘kB' | 'kilobyte' | 'kilobytes'
+  | ‘MB' | 'megabyte' | 'megabytes'
+  | ‘GB' | 'gigabyte' | 'gigabytes'
+  | ‘TB' | 'terabyte' | 'terabytes'
+  | ‘PB' | 'petabyte' | 'petabytes'
+  | ‘EB' | 'exabyte' | 'exabytes'
+  | ‘ZB' | 'zettabyte' | 'zettabytes'
+  | ‘YB' | 'yottabyte' | 'yottabytes'
+  | ‘K' | 'k' | 'Ki' | 'KiB' | 'kibibyte' | 'kibibytes'
+  | ‘M' | 'm' | 'Mi' | 'MiB' | 'mebibyte' | 'mebibytes'
+  | ‘G' | 'g' | 'Gi' | 'GiB' | 'gibibyte' | 'gibibytes'
+  | ‘T' | 't' | 'Ti' | 'TiB' | 'tebibyte' | 'tebibytes'
+  | ‘P' | 'p' | 'Pi' | 'PiB' | 'pebibyte' | 'pebibytes'
+  | ‘E' | 'e' | 'Ei' | 'EiB' | 'exbibyte' | 'exbibytes'
+  | ‘Z' | 'z' | 'Zi' | 'ZiB' | 'zebibyte' | 'zebibytes'
+  | ‘Y' | 'y' | 'Yi' | 'YiB' | 'yobibyte' | 'yobibytes'
+
+Size -> Number SizeUnit
+
+DeterminedSubstitution -> '${' Key '}'
+
+NonDeterminedSubstitution -> '${?' Key '}'
+
+Substitution ->
+  | DeterminedSubstitution
+  | NonDeterminedSubstitution
+
+ValueSegment -> 
+  | UnquotedString
+  | QuotedString
+  | MultilineString
+  | Number
+  | Duration
+  | Size
+  | List
+  | Map
+  | Substitution
+
+Value -> 
+  | ValueSegment 
+  | ValueSegment Value
+
+Separator -> ':' | '='
+
+KeyValuePair -> 
+  | Key Whitespace? Separator Whitespace? Value 
+  | Key Map
+
+ElementSeparator -> 
+  | Whitespace? EOL Whitespace? 
+  | Whitespace? ',' Whitespace? 
+  | Whitespace? ',' Whitespace? EOL Whitespace? 
+
+KeyValuePairs ->  
+  | KeyValuePair
+  | KeyValuePair ElementSeparator
+  | KeyValuePair ElementSeparator KeyValuePairs
+
+Map -> '{' WhiteSpace? KeyValuePairs WhiteSpace? '}'
+
+Values ->
+  | Value
+  | Value ElementSeparator
+  | Value ElementSeparator Values
+
+Array -> '[' Whitespace? Values Whitespace? ']'
+
+Document ->
+  | Whitespace? KeyValuePairs Whitespace? #
+  | Whitespace? Map Whitespace? #
+  | Whitespace? Array Whitespace? #
