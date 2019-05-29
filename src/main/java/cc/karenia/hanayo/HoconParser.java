@@ -141,6 +141,14 @@ public class HoconParser {
     return sb.toString();
   }
 
+  static boolean isCharIn(char c, char[] delimiter) {
+    for (var d : delimiter) {
+      if (c == d)
+        return true;
+    }
+    return false;
+  }
+
   /**
    * Reads an unquoted string. The delimiters are pushed back into the stream when
    * met.
@@ -156,21 +164,16 @@ public class HoconParser {
       char c = (char) reader.read();
 
       // Check if the string ends here. Break if yes.
-      for (var d : endDelimiters)
-        if (c == d) {
-          reader.unread(c);
-          break;
-        }
+      if (isCharIn(c, endDelimiters)) {
+        reader.unread(c);
+        break;
+      }
 
       // Raise error when meeting EOF
       if (c == -1)
         throw new EOFException("Early EOF when parsing file.");
 
       sb.append(c);
-
-      // The followings are marked as dead code by java. They aren't.
-      if (false)
-        break;
     }
     return sb.toString();
   }
