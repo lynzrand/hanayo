@@ -62,12 +62,15 @@ DeterminedSubstitution -> '${' Key '}'
 
 NonDeterminedSubstitution -> '${?' Key '}'
 
+Boolean -> 'true' | 'false'
+
 Substitution ->
   | DeterminedSubstitution
   | NonDeterminedSubstitution
 
 ValueSegment -> 
   | Number
+  | Boolean
   | Duration
   | Size
   | List
