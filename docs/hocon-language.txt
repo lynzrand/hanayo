@@ -1,6 +1,6 @@
 EOL -> '\n' | '\r' | '\r\n'
 
-Whitespace -> ' ' | '\t'
+Whitespace -> ' ' | '\t' | EOL
 
 EscapedSequence -> 
   | '\\' [bfnrt\\] 
@@ -89,9 +89,9 @@ KeyValuePair ->
   | Key Map
 
 ElementSeparator -> 
-  | Whitespace? EOL Whitespace?
+  | Whitespace? EOL+ Whitespace?
   | Whitespace? ',' Whitespace?
-  | Whitespace? ',' Whitespace? EOL Whitespace? 
+  | Whitespace? ',' Whitespace? EOL+ Whitespace? 
 
 KeyValuePairs ->  
   | KeyValuePair

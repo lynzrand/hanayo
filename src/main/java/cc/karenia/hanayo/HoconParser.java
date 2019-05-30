@@ -13,20 +13,36 @@ public class HoconParser {
    */
   static final char[] KEY_END_DELIMITERS = new char[] { '.', ':', '=', '{' };
 
-  static public IHoconElement parse(String src) {
-    // throw new RuntimeException("Method not implemented");
-    return parse(new StringReader(src));
+  static BitSet UnquotedStringForbiddenChars = new BitSet();
+  static {
+    UnquotedStringForbiddenChars.set('$');
+    UnquotedStringForbiddenChars.set('"');
+    UnquotedStringForbiddenChars.set('{');
+    UnquotedStringForbiddenChars.set('}');
+    UnquotedStringForbiddenChars.set('[');
+    UnquotedStringForbiddenChars.set(']');
+    UnquotedStringForbiddenChars.set(':');
+    UnquotedStringForbiddenChars.set('=');
+    UnquotedStringForbiddenChars.set(',');
+    UnquotedStringForbiddenChars.set('+');
+    UnquotedStringForbiddenChars.set('#');
+    UnquotedStringForbiddenChars.set('\\');
+    UnquotedStringForbiddenChars.set('?');
+    UnquotedStringForbiddenChars.set('!');
+    UnquotedStringForbiddenChars.set('@');
+    UnquotedStringForbiddenChars.set('&');
+    UnquotedStringForbiddenChars.set('^');
+    UnquotedStringForbiddenChars.set('\n');
+    UnquotedStringForbiddenChars.set('\r');
+    UnquotedStringForbiddenChars.set('\f');
   }
 
-  /**
-   * Parse a character stream
-   * 
-   * @param charStream
-   * @return the parsed object
-   */
-  static public IHoconElement parse(Reader charStream) {
-    var reader = new BufferedReader(charStream);
+  static public IHoconElement parse(String src) {
+    // throw new RuntimeException("Method not implemented");
+    return parseDocument(src.toCharArray());
+  }
 
+  static public IHoconElement parseDocument(char[] buffer) {
     throw new RuntimeException("Method not implemented");
   }
 
@@ -46,6 +62,24 @@ public class HoconParser {
     throw new RuntimeException("Method not implemented");
   }
 
+  static ParseResult<?> parseEol(char[] buffer, int pointer) {
+    if (buffer[pointer] == '\n') {
+      pointer++;
+      return ParseResult.success(pointer);
+    } else if (buffer[pointer] == '\r') {
+      pointer++;
+      if (buffer[pointer] == '\n')
+        pointer++;
+      return ParseResult.success(pointer);
+    }
+    return ParseResult.fail(pointer);
+  }
+
+  static void skipWhitespace(char[] buffer, int pointer) {
+    while (Character.isWhitespace(buffer[pointer]))
+      pointer++;
+  }
+
   /**
    * Reads the key in a Hocon Object(Map).
    * 
@@ -53,6 +87,7 @@ public class HoconParser {
    * @return the key being read
    * @throws IOException
    */
+  @Deprecated
   static HoconKey readKey(final PushbackReader reader) throws IOException {
     String keyString;
     int c;
@@ -81,6 +116,7 @@ public class HoconParser {
    * @return The string read
    * @throws IOException
    */
+  @Deprecated
   static String readRawQuotedString(final PushbackReader reader) throws IOException {
     StringBuilder sb = new StringBuilder();
     while (true) {
@@ -140,6 +176,7 @@ public class HoconParser {
     return sb.toString();
   }
 
+  @Deprecated
   static boolean isCharIn(char c, char[] delimiter) {
     for (var d : delimiter) {
       if (c == d)
@@ -157,6 +194,8 @@ public class HoconParser {
    * @return The string read
    * @throws IOException
    */
+
+  @Deprecated
   static String readRawUnquotedString(final PushbackReader reader, final char[] endDelimiters) throws IOException {
     StringBuilder sb = new StringBuilder();
     while (true) {
