@@ -18,6 +18,10 @@ UnquotedString -> [^$"{}\[\]:=,+#`\^?!@#&\\]+
 
 MultilineString -> '"""' .* '"""'
 
+PathSegment -> [^$"{}\[\]:=,+#`\^?!@#&\\]+ | QuotedString
+
+Key -> PathSegment ( '.' PathSegment  )*
+
 Numerical -> [0-9]+
 
 Number -> 

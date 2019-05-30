@@ -19,6 +19,7 @@ class ParseResult<T> {
   public ParseResult(boolean success, int newPtr) {
     this.parseSuccess = success;
     this.newPtr = newPtr;
+    this.result = null;
   }
 
   public static <T> ParseResult<T> fail(int ptr) {
@@ -29,7 +30,7 @@ class ParseResult<T> {
     return new ParseResult<T>(true, ptr);
   }
 
-  public static <T> ParseResult<T> Success(int ptr, T result) {
+  public static <T> ParseResult<T> success(int ptr, T result) {
     return new ParseResult<T>(ptr, result);
   }
 }

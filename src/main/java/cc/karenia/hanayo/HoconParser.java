@@ -13,6 +13,13 @@ public class HoconParser {
    */
   static final char[] KEY_END_DELIMITERS = new char[] { '.', ':', '=', '{' };
 
+  static BitSet EolChars = new BitSet();
+  static {
+    EolChars.set('\n');
+    EolChars.set('\r');
+    EolChars.set('\f');
+  }
+
   static BitSet UnquotedStringForbiddenChars = new BitSet();
   static {
     UnquotedStringForbiddenChars.set('$');
@@ -46,6 +53,7 @@ public class HoconParser {
     throw new RuntimeException("Method not implemented");
   }
 
+  @Deprecated
   static public HoconMap parseMap(final PushbackReader reader) throws IOException {
     int c;
     var map = new HoconMap();
@@ -57,9 +65,21 @@ public class HoconParser {
     return map;
   }
 
+  @Deprecated
   static IHoconElement readValue(final PushbackReader reader) throws IOException {
 
     throw new RuntimeException("Method not implemented");
+  }
+
+  static ParseResult<Boolean> parseBoolean(char[] buffer, int pointer) {
+    var ptr = pointer;
+    if (buffer[ptr++] == 't' && buffer[ptr++] == 'r' && buffer[ptr++] == 'u' && buffer[ptr++] == 'e')
+      return ParseResult.success(ptr, true);
+    ptr = pointer;
+    if (buffer[ptr++] == 'f' && buffer[ptr++] == 'a' && buffer[ptr++] == 'l' && buffer[ptr++] == 's'
+        && buffer[ptr++] == 'e')
+      return ParseResult.success(ptr, false);
+    return ParseResult.fail(pointer);
   }
 
   static ParseResult<?> parseEol(char[] buffer, int pointer) {
@@ -80,56 +100,31 @@ public class HoconParser {
       pointer++;
   }
 
-  /**
-   * Reads the key in a Hocon Object(Map).
-   * 
-   * @param reader the stream to read from
-   * @return the key being read
-   * @throws IOException
-   */
   @Deprecated
-  static HoconKey readKey(final PushbackReader reader) throws IOException {
-    String keyString;
-    int c;
-    if ((c = reader.read()) == '"')
-      keyString = readRawQuotedString(reader);
-    else {
-      reader.unread(c);
-      keyString = readRawUnquotedString(reader, KEY_END_DELIMITERS);
-    }
+  static ParseResult<HoconKey> parseKey(final char[] buf, int ptr) {
 
-    var key = new HoconKey(keyString.trim());
-    var keyTail = key;
-    while ((c = reader.read()) == '.') {
-      keyTail.next = readKey(reader);
-      keyTail = keyTail.next;
-    }
-    reader.unread(c);
-    return key;
   }
 
-  /**
-   * Read a quoted string. The delimiter (double quote) are <b>NOT</b> pushed back
-   * to the stream.
-   * 
-   * @param reader the stream to read from
-   * @return The string read
-   * @throws IOException
-   */
-  @Deprecated
-  static String readRawQuotedString(final PushbackReader reader) throws IOException {
+  static ParseResult<String> parseQuotedString(final char[] buf, int ptr) {
+    if (buf[ptr] != '"')
+      return ParseResult.fail(ptr);
+    var origPtr = ptr;
+    ptr++;
     StringBuilder sb = new StringBuilder();
     while (true) {
-      char c = (char) reader.read();
+      char c = buf[ptr];
 
       // Check if the string ends here. Break if yes.
       if (c == '"')
         break;
 
+      if (!EolChars.get(c))
+        return ParseResult.fail(origPtr);
+
       // Escaped chars. Read them.
       if (c == '\\') {
         boolean shouldReadUnicodeChars = false;
-        char d = (char) reader.read();
+        char d = buf[++ptr];
         switch (d) {
         case '\\':
           c = '\\';
@@ -159,21 +154,17 @@ public class HoconParser {
           c = d;
         }
         if (shouldReadUnicodeChars) {
-          var unicode = CharBuffer.allocate(4);
-          reader.read(unicode);
+          var unicode = CharBuffer.wrap(buf, ptr, 4);
+          ptr += 4;
           var codePoint = Integer.parseUnsignedInt(unicode, 0, 4, 16);
           sb.appendCodePoint(codePoint);
           continue;
         }
       }
 
-      // Raise error when meeting EOF
-      if (c == -1)
-        throw new EOFException("Early EOF when parsing file.");
-
       sb.append(c);
     }
-    return sb.toString();
+    return ParseResult.success(ptr, sb.toString());
   }
 
   @Deprecated
@@ -185,34 +176,28 @@ public class HoconParser {
     return false;
   }
 
-  /**
-   * Reads an unquoted string. The delimiters are pushed back into the stream when
-   * met.
-   * 
-   * @param reader        the stream to read from
-   * @param endDelimiters the end delimiters. Use an empty array when none.
-   * @return The string read
-   * @throws IOException
-   */
-
   @Deprecated
-  static String readRawUnquotedString(final PushbackReader reader, final char[] endDelimiters) throws IOException {
+  static ParseResult<String> parseUnquotedString(final char[] buf, int ptr, BitSet delimiters) {
     StringBuilder sb = new StringBuilder();
     while (true) {
-      char c = (char) reader.read();
+      char c = buf[ptr];
 
       // Check if the string ends here. Break if yes.
-      if (isCharIn(c, endDelimiters)) {
-        reader.unread(c);
+      if (delimiters.get(c)) {
+        ptr--;
         break;
       }
 
-      // Raise error when meeting EOF
-      if (c == -1)
-        throw new EOFException("Early EOF when parsing file.");
+      // Check if it is a comment. End if it is.
+      if (c == '/')
+        if (buf[ptr + 1] == '/') {
+          ptr--;
+          break;
+        }
 
       sb.append(c);
+      ptr++;
     }
-    return sb.toString().trim();
+    return ParseResult.success(ptr, sb.toString().trim());
   }
 }
