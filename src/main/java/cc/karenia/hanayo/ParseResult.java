@@ -1,6 +1,8 @@
 package cc.karenia.hanayo;
 
-class ParseResult<T> {
+import java.text.ParseException;
+
+public class ParseResult<T> {
   public boolean parseSuccess;
   public int newPtr;
   public T result;
@@ -28,6 +30,37 @@ class ParseResult<T> {
     this.newPtr = newPtr;
     this.result = null;
     this.exception = failException;
+  }
+
+  public T unwrap() {
+    if (this.parseSuccess) {
+      return result;
+    } else {
+      if (this.exception != null) {
+        throw new RuntimeException(this.exception);
+      } else {
+        throw new RuntimeException("Parse failed at " + newPtr);
+      }
+    }
+  }
+
+  public T unwrapThrow() throws Exception {
+    if (this.parseSuccess) {
+      return result;
+    } else {
+      if (this.exception != null) {
+        throw new Exception(this.exception);
+      } else {
+        throw new ParseException("Parse failed", newPtr);
+      }
+    }
+  }
+
+  public T unwrapSilent() {
+    if (this.parseSuccess)
+      return result;
+    else
+      return null;
   }
 
   public static <T> ParseResult<T> fail(int ptr) {

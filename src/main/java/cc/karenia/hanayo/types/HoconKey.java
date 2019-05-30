@@ -13,15 +13,21 @@ public class HoconKey {
    * The next part in key path
    */
   public HoconKey next;
+  /**
+   * The root of this key
+   */
+  public HoconKey root;
 
   public HoconKey(String key) {
     this.name = key;
     this.next = null;
+    this.root = this;
   }
 
-  public HoconKey(String key, HoconKey next) {
+  public HoconKey(String key, HoconKey root) {
     this.name = key;
-    this.next = next;
+    this.next = null;
+    this.root = root;
   }
 
   public String path() {

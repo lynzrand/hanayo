@@ -74,30 +74,52 @@ public class HoconParser {
     throw new RuntimeException("Method not implemented");
   }
 
+  static ParseResult<HoconSubstitution> parseSubstitution(final char[] buf, int ptr) {
+    if (buf.length < ptr + 4 || !(buf[ptr] == '$' && buf[ptr + 1] == '{'))
+      return ParseResult.fail(ptr, new ParseException("Expected substitution", ptr));
+    var initPtr = ptr;
+    ptr += 2;
+    var isDetermined = true;
+    if (buf[ptr] == '?') {
+      isDetermined = false;
+      ptr++;
+    }
+    var key = parseKey(buf, ptr);
+
+    if (!key.parseSuccess)
+      return ParseResult.fail(initPtr, key.exception);
+
+    ptr = key.newPtr;
+    if (buf[ptr] != '}')
+      return ParseResult.fail(initPtr, new ParseException("Expected '}'", ptr));
+    ptr++;
+    return ParseResult.success(ptr, new HoconSubstitution(key.unwrap(), isDetermined));
+  }
+
   static ParseResult<HoconNumber> parseNumber(final char[] buf, int ptr) {
-    if (buf[ptr] < '0' || buf[ptr] > '9')
+    if (!Character.isDigit(buf[ptr]))
       return ParseResult.fail(ptr);
 
     var initPtr = ptr;
     var isInteger = true;
 
     // match integral part
-    while (Character.isDigit(buf[ptr]))
+    while (ptr < buf.length && Character.isDigit(buf[ptr]))
       ptr++;
 
     // match decimal point and fractional part
     if (buf[ptr] == '.' && Character.isDigit(buf[ptr + 1])) {
       ptr += 2;
       isInteger = false;
-      while (Character.isDigit(buf[ptr]))
+      while (ptr < buf.length && Character.isDigit(buf[ptr]))
         ptr++;
     }
 
     // match exponent
-    if ((buf[ptr] == 'E' || buf[ptr] == 'e') && Character.isDigit(buf[ptr + 1])) {
+    if ((buf[ptr] == 'E' || buf[ptr] == 'e') && (ptr + 1 < buf.length && Character.isDigit(buf[ptr + 1]))) {
       ptr += 2;
       isInteger = false;
-      while (Character.isDigit(buf[ptr]))
+      while (ptr < buf.length && Character.isDigit(buf[ptr]))
         ptr++;
     }
 
@@ -118,11 +140,11 @@ public class HoconParser {
   }
 
   static void skipWhitespace(char[] buf, int ptr) {
-    while (Character.isWhitespace(buf[ptr]))
+    while (ptr < buf.length && Character.isWhitespace(buf[ptr]))
       ptr++;
   }
 
-  static ParseResult<HoconKey> parseKey(final char[] buf, int ptr) {
+  public static ParseResult<HoconKey> parseKey(final char[] buf, int ptr) {
     int initPtr = ptr;
 
     // Parse the first part of the key
@@ -138,8 +160,9 @@ public class HoconParser {
     var key = new HoconKey(parseResult.result.stripLeading());
     ptr = parseResult.newPtr;
 
+    // parse the rest parts if present
     var keyTail = key;
-    while (buf[ptr] == '.') {
+    while (ptr < buf.length && buf[ptr] == '.') {
       ptr++;
       if (buf[ptr] == '"')
         parseResult = parseQuotedString(buf, ptr);
@@ -149,7 +172,7 @@ public class HoconParser {
       if (!parseResult.parseSuccess)
         return ParseResult.fail(initPtr, parseResult.exception);
 
-      keyTail.next = new HoconKey(parseResult.result);
+      keyTail.next = new HoconKey(parseResult.result, key);
       keyTail = keyTail.next;
       ptr = parseResult.newPtr;
     }
@@ -165,7 +188,7 @@ public class HoconParser {
 
     ptr += 3;
     var initPtr = ptr;
-    while (true) {
+    while (ptr < buf.length) {
       char c = buf[ptr];
 
       // Find end delimiter
@@ -187,7 +210,7 @@ public class HoconParser {
     var initPtr = ptr;
     ptr++;
     StringBuilder sb = new StringBuilder();
-    while (true) {
+    while (ptr < buf.length) {
       char c = buf[ptr];
 
       // Check if the string ends here. Break if yes.
@@ -258,7 +281,7 @@ public class HoconParser {
 
   static ParseResult<String> parseUnquotedString(final char[] buf, int ptr, BitSet delimiters) {
     var initPtr = ptr;
-    while (true) {
+    while (ptr < buf.length) {
       char c = buf[ptr];
 
       // Check if the string ends here. Break if yes.
@@ -284,7 +307,7 @@ public class HoconParser {
     if (buf[ptr] != '#' || (buf[ptr] != '/' && buf[ptr + 1] != '/'))
       return ParseResult.fail(ptr);
     else {
-      while (!EolChars.get(buf[ptr]))
+      while (!EolChars.get(buf[ptr]) && ptr < buf.length)
         ptr++;
       return ParseResult.success(ptr);
     }

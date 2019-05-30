@@ -7,7 +7,7 @@ import org.junit.*;
 public class HoconParserTest {
   @Test
   public void TestKeyParser() throws Exception {
-    var charArray = "test.\"quoted\".spaced key: someKey".toCharArray();
+    var charArray = "test.\"quoted\".spaced key".toCharArray();
     var parseResult = HoconParser.parseKey(charArray, 0);
     if (parseResult.exception != null)
       throw parseResult.exception;
