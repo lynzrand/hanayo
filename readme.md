@@ -14,6 +14,40 @@ HOCON is a human-readable config format and a superset of JSON. Specs: [HOCON Sp
 
 Hanayo requires at least Java 11 to compile and run.
 
+## Feature list
+
+Parser completion status for language grammars are listed below (see [this file][grammar] for the full language grammar):
+
+- [x] EOL
+- [x] Whitespace
+- [x] EscapedSequence
+- [x] QuotedString
+- [x] UnquotedString
+- [x] MultilineString
+- [x] PathSegment
+- [x] Key
+- [x] Number
+- [ ] DurationUnit
+- [ ] Duration
+- [ ] SizeUnit
+- [ ] Size
+- [ ] DeterminedSubstitution
+- [ ] NonDeterminedSubstitution
+- [ ] Boolean
+- [ ] Substitution
+- [ ] ValueSegment
+- [ ] Value
+- [ ] Separator
+- [ ] KeyValuePair
+- [ ] ElementSeparator
+- [ ] KeyValuePairs
+- [ ] Map
+- [ ] Values
+- [ ] Array
+- [ ] Document
+
+[grammar]: https://github.com/01010101lzy/hanayo/blob/master/docs/hocon-language.txt
+
 ## Notes
 
 To make coding easier, Hanayo only implements a subset of HOCON. Its difference from the standard HOCON format are listed below (the list may grow):
