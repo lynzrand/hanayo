@@ -159,6 +159,28 @@ public class HoconParser {
     return ParseResult.success(ptr, key);
   }
 
+  static ParseResult<String> parseMultilineString(final char[] buf, int ptr) {
+    if (!(buf[ptr] == '"' && buf[ptr + 1] == '"' && buf[ptr + 2] == '"'))
+      return ParseResult.fail(ptr, new ParseException("Expected multiline string", ptr));
+
+    ptr += 3;
+    var initPtr = ptr;
+    while (true) {
+      char c = buf[ptr];
+
+      // Find end delimiter
+      if (c == '"' && buf[ptr + 1] == '"' && buf[ptr + 2] == '"') {
+        ptr += 3;
+        while (buf[ptr] == '"')
+          ptr++;
+        break;
+      }
+
+      ptr++;
+    }
+    return ParseResult.success(ptr, String.copyValueOf(buf, initPtr, ptr - initPtr - 3));
+  }
+
   static ParseResult<String> parseQuotedString(final char[] buf, int ptr) {
     if (buf[ptr] != '"')
       return ParseResult.fail(ptr, new ParseException("Expected quoted string", ptr));
@@ -235,7 +257,7 @@ public class HoconParser {
   }
 
   static ParseResult<String> parseUnquotedString(final char[] buf, int ptr, BitSet delimiters) {
-    StringBuilder sb = new StringBuilder();
+    var initPtr = ptr;
     while (true) {
       char c = buf[ptr];
 
@@ -253,10 +275,9 @@ public class HoconParser {
         if (buf[ptr] == '{')
           break;
 
-      sb.append(c);
       ptr++;
     }
-    return ParseResult.success(ptr, sb.toString());
+    return ParseResult.success(ptr, String.copyValueOf(buf, initPtr, ptr - initPtr));
   }
 
   static ParseResult<?> skipComments(final char[] buf, int ptr) {
