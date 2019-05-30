@@ -2,9 +2,13 @@ package cc.karenia.hanayo.types;
 
 public class HoconString implements IHoconElement {
 
+  public String value;
+  public boolean isQuoted;
+  public boolean isMultiline;
+
   @Override
   public HoconType getType() {
-    return null;
+    return HoconType.String;
   }
 
   @Override

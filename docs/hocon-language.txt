@@ -74,14 +74,14 @@ Substitution ->
 
 ValueSegment -> 
   | Number
-  | Boolean
+  | QuotedString
   | Duration
   | Size
   | List
   | Map
   | Substitution
   | UnquotedString
-  | QuotedString
+  | Boolean
   | MultilineString
 
 Value -> ValueSegment ( Whitespace? ValueSegment )*

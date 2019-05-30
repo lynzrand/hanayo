@@ -1,0 +1,15 @@
+
+parseValue(buf, ptr) {
+  match buf[ptr] {
+    [0-9] => parseNumber();
+    '[' => parseList();
+    '{' => parseMap();
+    '$' => parseSubstitution();
+    '"' => {
+      buf[ptr+1] == '"' && buf[ptr+2] == '"' => parseMultilineString();
+      _ => parseQuotedString();
+    }
+    _ => parseUnquotedString().transformIfPossible();
+  }
+}
+

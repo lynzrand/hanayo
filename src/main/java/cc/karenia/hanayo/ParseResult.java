@@ -1,11 +1,10 @@
 package cc.karenia.hanayo;
 
-import cc.karenia.hanayo.types.IHoconElement;
-
 class ParseResult<T> {
-  boolean parseSuccess;
-  int newPtr;
-  T result;
+  public boolean parseSuccess;
+  public int newPtr;
+  public T result;
+  public Exception exception;
 
   public ParseResult() {
   }
@@ -14,16 +13,29 @@ class ParseResult<T> {
     this.newPtr = newPtr;
     this.result = result;
     this.parseSuccess = true;
+    this.exception = null;
   }
 
   public ParseResult(boolean success, int newPtr) {
     this.parseSuccess = success;
     this.newPtr = newPtr;
     this.result = null;
+    this.exception = null;
+  }
+
+  public ParseResult(int newPtr, Exception failException) {
+    this.parseSuccess = false;
+    this.newPtr = newPtr;
+    this.result = null;
+    this.exception = failException;
   }
 
   public static <T> ParseResult<T> fail(int ptr) {
     return new ParseResult<T>(false, ptr);
+  }
+
+  public static <T> ParseResult<T> fail(int ptr, Exception exception) {
+    return new ParseResult<T>(ptr, exception);
   }
 
   public static <T> ParseResult<T> success(int ptr) {

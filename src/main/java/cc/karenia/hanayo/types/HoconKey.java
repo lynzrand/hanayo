@@ -7,7 +7,7 @@ public class HoconKey {
   /**
    * The name of this key
    */
-  public final String name;
+  public String name;
 
   /**
    * The next part in key path
@@ -22,5 +22,19 @@ public class HoconKey {
   public HoconKey(String key, HoconKey next) {
     this.name = key;
     this.next = next;
+  }
+
+  public String path() {
+    if (this.next == null)
+      return this.name;
+    else
+      return this.name + '.' + this.next.path();
+  }
+
+  public HoconKey tail() {
+    var tail = this;
+    while (tail.next != null)
+      tail = tail.next;
+    return tail;
   }
 }
