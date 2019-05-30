@@ -59,28 +59,50 @@ public class HoconParser {
     throw new RuntimeException("Method not implemented");
   }
 
-  static public HoconMap parseMap(final PushbackReader reader) throws IOException {
+  static public ParseResult<HoconMap> parseList(final char[] buf, int ptr) {
 
     throw new RuntimeException("Method not implemented");
   }
 
-  static IHoconElement parseValue(final char[] buf, int ptr) {
+  static public ParseResult<HoconMap> parseMap(final char[] buf, int ptr) {
 
     throw new RuntimeException("Method not implemented");
   }
 
-  // @Deprecated
-  // static ParseResult<Boolean> parseBoolean(char[] buffer, int pointer) {
-  // var ptr = pointer;
-  // if (buffer[ptr] == 't' && buffer[ptr + 1] == 'r' && buffer[ptr + 2] == 'u' &&
-  // buffer[ptr + 3] == 'e')
-  // return ParseResult.success(ptr + 4, true);
-  // if (buffer[ptr] == 'f' && buffer[ptr + 1] == 'a' && buffer[ptr + 2] == 'l' &&
-  // buffer[ptr + 3] == 's'
-  // && buffer[ptr + 4] == 'e')
-  // return ParseResult.success(ptr + 5, false);
-  // return ParseResult.fail(pointer);
-  // }
+  static ParseResult<IHoconElement> parseValue(final char[] buf, int ptr) {
+
+    throw new RuntimeException("Method not implemented");
+  }
+
+  static ParseResult<HoconNumber> parseNumber(final char[] buf, int ptr) {
+    if (buf[ptr] < '0' || buf[ptr] > '9')
+      return ParseResult.fail(ptr);
+
+    var initPtr = ptr;
+    var isInteger = true;
+
+    // match integral part
+    while (Character.isDigit(buf[ptr]))
+      ptr++;
+
+    // match decimal point and fractional part
+    if (buf[ptr] == '.' && Character.isDigit(buf[ptr + 1])) {
+      ptr += 2;
+      isInteger = false;
+      while (Character.isDigit(buf[ptr]))
+        ptr++;
+    }
+
+    // match exponent
+    if ((buf[ptr] == 'E' || buf[ptr] == 'e') && Character.isDigit(buf[ptr + 1])) {
+      ptr += 2;
+      isInteger = false;
+      while (Character.isDigit(buf[ptr]))
+        ptr++;
+    }
+
+    return ParseResult.success(ptr, new HoconNumber(String.copyValueOf(buf, initPtr, ptr), isInteger));
+  }
 
   static ParseResult<?> parseEol(char[] buf, int ptr) {
     if (buf[ptr] == '\n') {
