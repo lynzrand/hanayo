@@ -14,7 +14,22 @@ public class HoconBoolean implements IHoconElement {
 
   @Override
   public IHoconElement concat(IHoconElement newElement) {
-    return null;
+    switch (newElement.getType()) {
+    case String:
+    case Number:
+    case Boolean:
+    case Duration:
+    case Size:
+    case Period:
+      return new HoconString(this.value + newElement.asString(), false, false);
+
+    case Map:
+    case List:
+      return newElement;
+    default:
+      throw new IllegalArgumentException(
+          String.format("Cannot concat %s with %s", this.getType(), newElement.getType()));
+    }
   }
 
   @Override

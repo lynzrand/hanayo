@@ -1,44 +1,44 @@
 package cc.karenia.hanayo.types;
 
 public class HoconNumber implements IHoconElement {
-  public String originalString;
+  public String value;
   public boolean isInteger;
 
   public HoconNumber(String originalString, boolean isInteger) {
-    this.originalString = originalString;
+    this.value = originalString;
     this.isInteger = isInteger;
   }
 
   public long asLong() {
     if (!isInteger)
       throw new NumberFormatException("This number is not an integer");
-    return Long.parseLong(originalString);
+    return Long.parseLong(value);
   }
 
   public int asInt() {
     if (!isInteger)
       throw new NumberFormatException("This number is not an integer");
-    return Integer.parseInt(originalString);
+    return Integer.parseInt(value);
   }
 
   public short asShort() {
     if (!isInteger)
       throw new NumberFormatException("This number is not an integer");
-    return Short.parseShort(originalString);
+    return Short.parseShort(value);
   }
 
   public byte asByte() {
     if (!isInteger)
       throw new NumberFormatException("This number is not an integer");
-    return Byte.parseByte(originalString);
+    return Byte.parseByte(value);
   }
 
   public double asDouble() {
-    return Double.parseDouble(originalString);
+    return Double.parseDouble(value);
   }
 
   public float asFloat() {
-    return Float.parseFloat(originalString);
+    return Float.parseFloat(value);
   }
 
   @Override
@@ -48,11 +48,27 @@ public class HoconNumber implements IHoconElement {
 
   @Override
   public String asString() {
-    return originalString;
+    return value;
   }
 
   @Override
   public IHoconElement concat(IHoconElement newElement) {
-    return null;
+    switch (newElement.getType()) {
+    case String:
+    case Number:
+    case Boolean:
+    case Duration:
+    case Size:
+    case Period:
+      return new HoconString(this.value + newElement.asString(), false, false);
+
+    case Map:
+    case List:
+      return newElement;
+    default:
+      throw new IllegalArgumentException(
+          String.format("Cannot concat %s with %s", this.getType(), newElement.getType()));
+    }
+
   }
 }

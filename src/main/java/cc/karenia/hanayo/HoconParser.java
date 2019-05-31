@@ -125,7 +125,7 @@ public class HoconParser {
     ptr = parseResult.newPtr;
     value = parseResult.result;
 
-    while (!ElementSeparator.get(buf[ptr])) {
+    while (ptr < buf.length && !ElementSeparator.get(buf[ptr])) {
       parseResult = parseValueSegment(buf, ptr, root, currentPath);
 
       ptr = parseResult.newPtr;
@@ -150,6 +150,7 @@ public class HoconParser {
       } catch (HoconParseException e) {
         // Silently swallow error; Continue on next ones
       }
+
     }
     if (Character.isDigit(startChar) || startChar == '+' || startChar == '-') {
       return parseNumber(buf, ptr);
@@ -194,10 +195,12 @@ public class HoconParser {
   }
 
   static ParseResult<HoconNumber> parseNumber(final char[] buf, int ptr) throws HoconParseException {
+    var initPtr = ptr;
+    if (buf[ptr] == '+' || buf[ptr] == '-')
+      ptr++;
     if (!Character.isDigit(buf[ptr]))
       throw new HoconParseException("Expected digit", ptr);
 
-    var initPtr = ptr;
     var isInteger = true;
 
     // match integral part

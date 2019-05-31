@@ -43,4 +43,12 @@ public class HoconKey {
       tail = tail.next;
     return tail;
   }
+
+  @Override
+  protected HoconKey clone() {
+    var newObj = new HoconKey(name, root);
+    if (this.next != null)
+      newObj.next = this.next.clone();
+    return newObj;
+  }
 }

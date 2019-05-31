@@ -6,6 +6,7 @@ public class HoconParseException extends Exception {
   public HoconKey path;
   public int ptr;
   public String message;
+  public static boolean shouldGatherStacktrace = false;
 
   public HoconParseException(String message, int ptr, HoconKey path) {
     this.message = message;
@@ -21,11 +22,35 @@ public class HoconParseException extends Exception {
   public HoconParseException(int ptr, HoconKey path) {
     this.message = null;
     this.ptr = ptr;
-    this.path = path;
+    this.path = path.clone();
   }
 
   @Override
   public synchronized Throwable fillInStackTrace() {
+    if (shouldGatherStacktrace)
+      super.fillInStackTrace();
     return this;
+  }
+
+  @Override
+  public String toString() {
+    if (!this.shouldGatherStacktrace) {
+      if (path == null)
+        return String.format("HoconParseException: %s; Occurred at pointer %d", message, ptr);
+      else
+        return String.format("HoconParseException: %s; Occurred at pointer %d, path %s", message, ptr, path.path());
+    } else {
+      StringBuilder sb = new StringBuilder();
+      if (path == null)
+        sb.append(String.format("HoconParseException: %s; Occurred at pointer %d.\n\nStacktrace:\n", message, ptr));
+      else
+        sb.append(String.format("HoconParseException: %s; Occurred at pointer %d, path %s.\n\nStacktract:\n", message,
+            ptr, path.path()));
+      for (var st : this.getStackTrace()) {
+        sb.append(st.toString());
+        sb.append('\n');
+      }
+      return sb.toString();
+    }
   }
 }
