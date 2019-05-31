@@ -6,7 +6,7 @@ import org.junit.*;
 
 public class HoconParserTest {
   @Test
-  public void TestKeyParser() throws Exception {
+  public void TestKeyParser() throws Throwable {
     var charArray = "test.\"quoted\".spaced key".toCharArray();
     var parseResult = HoconParser.parseKey(charArray, 0);
     if (parseResult.exception != null)
@@ -18,7 +18,7 @@ public class HoconParserTest {
   }
 
   @Test
-  public void TestNumberParser() throws Exception {
+  public void TestNumberParser() throws Throwable {
     var number1 = "10000 ".toCharArray();
     var number2 = "10000e ".toCharArray();
     var number3 = "10000e5 ".toCharArray();
@@ -79,7 +79,11 @@ public class HoconParserTest {
   }
 
   @Test
-  public void testParseValueSegment() {
+  public void testParseValueStringConcatenation() throws Throwable {
+    var valueTest = "-123abc".toCharArray();
+    var parseResult = HoconParser.parseValueSegment(valueTest, 0, null, null).unwrapThrow();
+
+    assertEquals(parseResult.asString(), "-123abc");
 
   }
 }

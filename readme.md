@@ -38,8 +38,8 @@ Parser completion status for language grammars are listed below (see [this file]
 - [x] ValueSegment
 - [x] Value
 - [x] Separator
-- [ ] KeyValuePair
-- [ ] ElementSeparator
+- [x] KeyValuePair
+- [x] ElementSeparator
 - [ ] KeyValuePairs
 - [ ] Map
 - [ ] Values

@@ -6,7 +6,7 @@ public class ParseResult<T> {
   public boolean parseSuccess;
   public int newPtr;
   public T result;
-  public Exception exception;
+  public Throwable exception;
 
   public ParseResult() {
   }
@@ -25,7 +25,7 @@ public class ParseResult<T> {
     this.exception = null;
   }
 
-  public ParseResult(int newPtr, Exception failException) {
+  public ParseResult(int newPtr, Throwable failException) {
     this.parseSuccess = false;
     this.newPtr = newPtr;
     this.result = null;
@@ -36,20 +36,20 @@ public class ParseResult<T> {
     if (this.parseSuccess) {
       return result;
     } else {
-      throwIfPossible();
-      return null;
+      if (this.exception != null) {
+        throw new RuntimeException(this.exception);
+      } else {
+        throw new RuntimeException(new ParseException("Parse failed", newPtr));
+      }
     }
   }
 
-  public T unwrapThrow() throws Exception {
+  public T unwrapThrow() throws Throwable {
     if (this.parseSuccess) {
       return result;
     } else {
-      if (this.exception != null) {
-        throw new Exception(this.exception);
-      } else {
-        throw new ParseException("Parse failed", newPtr);
-      }
+      throwIfPossible();
+      return null;
     }
   }
 
@@ -60,11 +60,11 @@ public class ParseResult<T> {
       return null;
   }
 
-  public ParseResult<T> throwIfPossible() {
+  public ParseResult<T> throwIfPossible() throws Throwable {
     if (this.exception != null) {
-      throw new RuntimeException(this.exception);
+      throw this.exception;
     } else {
-      throw new RuntimeException(new ParseException("Parse failed", newPtr));
+      throw new ParseException("Parse failed", newPtr);
     }
   }
 
@@ -72,7 +72,7 @@ public class ParseResult<T> {
     return new ParseResult<T>(false, ptr);
   }
 
-  public static <T> ParseResult<T> fail(int ptr, Exception exception) {
+  public static <T> ParseResult<T> fail(int ptr, Throwable exception) {
     return new ParseResult<T>(ptr, exception);
   }
 

@@ -3,21 +3,18 @@ package cc.karenia.hanayo.types;
 public class HoconSubstitution implements IHoconElement {
   public HoconKey path;
   public boolean isDetermined;
-  public IHoconPathResolvable rootElement;
 
   public HoconSubstitution(HoconKey path, boolean isDetermined) {
     this.path = path;
     this.isDetermined = isDetermined;
-    this.rootElement = null;
   }
 
   public HoconSubstitution(HoconKey path, boolean isDetermined, IHoconPathResolvable rootElement) {
     this.path = path;
     this.isDetermined = isDetermined;
-    this.rootElement = rootElement;
   }
 
-  public IHoconElement resolve() {
+  public IHoconElement resolve(IHoconPathResolvable rootElement) {
     if (rootElement == null)
       throw new NullPointerException("Cannot resolve substitution: root element is null.");
     if (isDetermined)
@@ -42,7 +39,7 @@ public class HoconSubstitution implements IHoconElement {
 
   @Override
   public IHoconElement concat(IHoconElement newElement) {
-    return this.resolve();
+    throw new RuntimeException(String.format("Resolve this substitution (%s) before concatenation.", path.path()));
   }
 
 }
