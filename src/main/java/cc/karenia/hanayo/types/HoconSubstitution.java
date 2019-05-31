@@ -18,6 +18,8 @@ public class HoconSubstitution implements IHoconElement {
   }
 
   public IHoconElement resolve() {
+    if (rootElement == null)
+      throw new NullPointerException("Cannot resolve substitution: root element is null.");
     if (isDetermined)
       return rootElement.getPath(path);
     else

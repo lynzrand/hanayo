@@ -4,6 +4,8 @@ import java.text.*;
 import java.io.*;
 import java.nio.CharBuffer;
 import java.util.*;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 
 import cc.karenia.hanayo.types.*;
 
@@ -13,6 +15,12 @@ public class HoconParser {
     EolChars.set('\n');
     EolChars.set('\r');
     EolChars.set('\f');
+  }
+
+  static BitSet ElementSeparator = new BitSet();
+  static {
+    ElementSeparator.or(EolChars);
+    ElementSeparator.set(',');
   }
 
   static BitSet KeyDelimiters = new BitSet();
@@ -59,28 +67,83 @@ public class HoconParser {
     throw new NoSuchMethodError();
   }
 
-  static public ParseResult<HoconMap> parseList(final char[] buf, int ptr) {
+  static public ParseResult<HoconMap> parseList(final char[] buf, int ptr, IHoconPathResolvable root,
+      HoconKey currentPath) {
 
     throw new NoSuchMethodError();
   }
 
-  static public ParseResult<HoconMap> parseMap(final char[] buf, int ptr) {
+  static public ParseResult<HoconMap> parseMap(final char[] buf, int ptr, IHoconPathResolvable root,
+      HoconKey currentPath) {
 
     throw new NoSuchMethodError();
   }
 
-  static ParseResult<IHoconElement> parseValue(final char[] buf, int ptr) {
-    throw new NoSuchMethodError();
+  static Entry<HoconKey, IHoconElement> parseKeyValuePair(final char[] buf, int ptr, IHoconPathResolvable root,
+      HoconKey currentPath) {
+    var keyResult = parseKey(buf, ptr).throwIfPossible();
+    var key = keyResult.result;
+    ptr = keyResult.newPtr;
+
+    var valueResult = parseValue(buf, ptr, root, currentPath).throwIfPossible();
+    var value = valueResult.result;
+    ptr = valueResult.newPtr;
+
+    var entry = new SimpleEntry<HoconKey, IHoconElement>(key, value);
+    return entry;
   }
 
-  static ParseResult<? extends IHoconElement> parseValueSegment(final char[] buf, int ptr) {
+  static ParseResult<? extends IHoconElement> parseValue(final char[] buf, int ptr, IHoconPathResolvable root,
+      HoconKey currentPath) {
+    IHoconElement value = null;
+    var initPtr = ptr;
+    ptr = skipWhitespace(buf, ptr);
+
+    var parseResult = parseValueSegment(buf, ptr, root, currentPath);
+
+    if (parseResult.parseSuccess) {
+      ptr = parseResult.newPtr;
+      value = parseResult.result;
+    } else {
+      return parseResult;
+    }
+
+    while (!ElementSeparator.get(buf[ptr])) {
+      parseResult = parseValueSegment(buf, ptr, root, currentPath);
+
+      if (parseResult.parseSuccess) {
+        ptr = parseResult.newPtr;
+        value = value.concat(parseResult.result);
+      } else {
+        return parseResult;
+      }
+    }
+
+    if (value.getType() == HoconType.String) {
+      var strVal = (HoconString) value;
+      strVal.value = strVal.value.stripTrailing();
+    }
+    return ParseResult.success(ptr, value);
+  }
+
+  static ParseResult<? extends IHoconElement> parseValueSegment(final char[] buf, int ptr, IHoconPathResolvable root,
+      HoconKey currentPath) {
     var startChar = buf[ptr];
+    var initPtr = ptr;
+    if (Character.isWhitespace(startChar)) {
+      var result = parseHoconString(buf, ptr, false, false);
+      if (!result.parseSuccess) {
+        ptr = skipWhitespace(buf, ptr);
+      } else {
+        return result;
+      }
+    }
     if (Character.isDigit(startChar) || startChar == '+' || startChar == '-') {
       return parseNumber(buf, ptr);
     } else if (buf[ptr] == '[') {
-      return parseList(buf, ptr);
+      return parseList(buf, ptr, root, currentPath);
     } else if (buf[ptr] == '{') {
-      return parseMap(buf, ptr);
+      return parseMap(buf, ptr, root, currentPath);
     } else if (buf[ptr] == '$') {
       return parseSubstitution(buf, ptr);
     } else if (buf[ptr] == '"') {
@@ -158,9 +221,10 @@ public class HoconParser {
     return ParseResult.fail(ptr);
   }
 
-  static void skipWhitespace(char[] buf, int ptr) {
+  static int skipWhitespace(char[] buf, int ptr) {
     while (ptr < buf.length && Character.isWhitespace(buf[ptr]))
       ptr++;
+    return ptr;
   }
 
   public static ParseResult<HoconKey> parseKey(final char[] buf, int ptr) {
@@ -304,15 +368,6 @@ public class HoconParser {
     }
     ptr++;
     return ParseResult.success(ptr, sb.toString());
-  }
-
-  @Deprecated
-  static boolean isCharIn(char c, char[] delimiter) {
-    for (var d : delimiter) {
-      if (c == d)
-        return true;
-    }
-    return false;
   }
 
   static ParseResult<String> parseUnquotedString(final char[] buf, int ptr, BitSet delimiters) {

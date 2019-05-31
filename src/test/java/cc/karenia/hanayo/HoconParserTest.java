@@ -77,4 +77,9 @@ public class HoconParserTest {
     assertEquals(parseResult.result.path.name, "b");
     assertEquals(parseResult.result.path.next.name, "c");
   }
+
+  @Test
+  public void testParseValueSegment() {
+
+  }
 }

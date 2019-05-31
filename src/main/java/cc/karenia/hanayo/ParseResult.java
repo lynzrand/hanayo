@@ -36,11 +36,8 @@ public class ParseResult<T> {
     if (this.parseSuccess) {
       return result;
     } else {
-      if (this.exception != null) {
-        throw new RuntimeException(this.exception);
-      } else {
-        throw new RuntimeException("Parse failed at " + newPtr);
-      }
+      throwIfPossible();
+      return null;
     }
   }
 
@@ -61,6 +58,14 @@ public class ParseResult<T> {
       return result;
     else
       return null;
+  }
+
+  public ParseResult<T> throwIfPossible() {
+    if (this.exception != null) {
+      throw new RuntimeException(this.exception);
+    } else {
+      throw new RuntimeException(new ParseException("Parse failed", newPtr));
+    }
   }
 
   public static <T> ParseResult<T> fail(int ptr) {
