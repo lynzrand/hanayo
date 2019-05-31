@@ -33,9 +33,9 @@ Parser completion status for language grammars are listed below (see [this file]
 - [ ] Size
 - [x] DeterminedSubstitution
 - [x] NonDeterminedSubstitution
-- [ ] Boolean
+- [x] Boolean
 - [x] Substitution
-- [ ] ValueSegment
+- [x] ValueSegment
 - [ ] Value
 - [ ] Separator
 - [ ] KeyValuePair

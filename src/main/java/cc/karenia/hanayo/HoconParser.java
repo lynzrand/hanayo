@@ -26,28 +26,28 @@ public class HoconParser {
     KeyDelimiters.set(']');
   }
 
-  static BitSet UnquotedStringForbiddenChars = new BitSet();
+  static BitSet UnquotedStringDelimiters = new BitSet();
   static {
     // UnquotedStringForbiddenChars.set('$');
-    UnquotedStringForbiddenChars.set('"');
-    UnquotedStringForbiddenChars.set('{');
-    UnquotedStringForbiddenChars.set('}');
-    UnquotedStringForbiddenChars.set('[');
-    UnquotedStringForbiddenChars.set(']');
-    UnquotedStringForbiddenChars.set(':');
-    UnquotedStringForbiddenChars.set('=');
-    UnquotedStringForbiddenChars.set(',');
-    UnquotedStringForbiddenChars.set('+');
-    UnquotedStringForbiddenChars.set('#');
-    UnquotedStringForbiddenChars.set('\\');
-    UnquotedStringForbiddenChars.set('?');
-    UnquotedStringForbiddenChars.set('!');
-    UnquotedStringForbiddenChars.set('@');
-    UnquotedStringForbiddenChars.set('&');
-    UnquotedStringForbiddenChars.set('^');
-    UnquotedStringForbiddenChars.set('\n');
-    UnquotedStringForbiddenChars.set('\r');
-    UnquotedStringForbiddenChars.set('\f');
+    UnquotedStringDelimiters.set('"');
+    UnquotedStringDelimiters.set('{');
+    UnquotedStringDelimiters.set('}');
+    UnquotedStringDelimiters.set('[');
+    UnquotedStringDelimiters.set(']');
+    UnquotedStringDelimiters.set(':');
+    UnquotedStringDelimiters.set('=');
+    UnquotedStringDelimiters.set(',');
+    UnquotedStringDelimiters.set('+');
+    UnquotedStringDelimiters.set('#');
+    UnquotedStringDelimiters.set('\\');
+    UnquotedStringDelimiters.set('?');
+    UnquotedStringDelimiters.set('!');
+    UnquotedStringDelimiters.set('@');
+    UnquotedStringDelimiters.set('&');
+    UnquotedStringDelimiters.set('^');
+    UnquotedStringDelimiters.set('\n');
+    UnquotedStringDelimiters.set('\r');
+    UnquotedStringDelimiters.set('\f');
   }
 
   static public IHoconElement parse(String src) {
@@ -57,7 +57,6 @@ public class HoconParser {
 
   static public IHoconElement parseDocument(char[] buffer) {
     throw new NoSuchMethodError();
-    ;
   }
 
   static public ParseResult<HoconMap> parseList(final char[] buf, int ptr) {
@@ -72,6 +71,26 @@ public class HoconParser {
 
   static ParseResult<IHoconElement> parseValue(final char[] buf, int ptr) {
     throw new NoSuchMethodError();
+  }
+
+  static ParseResult<? extends IHoconElement> parseValueSegment(final char[] buf, int ptr) {
+    var startChar = buf[ptr];
+    if (Character.isDigit(startChar) || startChar == '+' || startChar == '-') {
+      return parseNumber(buf, ptr);
+    } else if (buf[ptr] == '[') {
+      return parseList(buf, ptr);
+    } else if (buf[ptr] == '{') {
+      return parseMap(buf, ptr);
+    } else if (buf[ptr] == '$') {
+      return parseSubstitution(buf, ptr);
+    } else if (buf[ptr] == '"') {
+      if (ptr + 3 > buf.length && buf[ptr + 1] == '"' && buf[ptr + 2] == '"')
+        return parseHoconString(buf, ptr, false, true);
+      else
+        return parseHoconString(buf, ptr, true, false);
+    } else {
+      return parseHoconString(buf, ptr, false, false);
+    }
   }
 
   static ParseResult<HoconSubstitution> parseSubstitution(final char[] buf, int ptr) {
@@ -180,6 +199,23 @@ public class HoconParser {
     keyTail.name = keyTail.name.stripTrailing();
 
     return ParseResult.success(ptr, key);
+  }
+
+  static ParseResult<HoconString> parseHoconString(final char[] buf, int ptr, boolean isQuoted, boolean isMultiline) {
+    ParseResult<String> result;
+    if (isQuoted)
+      result = parseQuotedString(buf, ptr);
+    else if (isMultiline)
+      result = parseMultilineString(buf, ptr);
+    else
+      result = parseUnquotedString(buf, ptr, UnquotedStringDelimiters);
+
+    if (result.parseSuccess) {
+      var str = new HoconString(result.result, isQuoted, isMultiline);
+      return ParseResult.success(result.newPtr, str);
+    } else {
+      return ParseResult.fail(result.newPtr, result.exception);
+    }
   }
 
   static ParseResult<String> parseMultilineString(final char[] buf, int ptr) {
@@ -300,6 +336,8 @@ public class HoconParser {
 
       ptr++;
     }
+    if (ptr == initPtr)
+      return ParseResult.fail(ptr);
     return ParseResult.success(ptr, String.copyValueOf(buf, initPtr, ptr - initPtr));
   }
 
