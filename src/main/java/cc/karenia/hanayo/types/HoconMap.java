@@ -24,11 +24,6 @@ public class HoconMap extends HashMap<String, IHoconElement> implements IHoconEl
     }
   }
 
-  @Override
-  public String getOriginalString() {
-    return null;
-  }
-
   public IHoconElement concat(IHoconElement newElement) {
     if (newElement instanceof HoconMap) {
       var map = (HoconMap) newElement;
@@ -69,6 +64,11 @@ public class HoconMap extends HashMap<String, IHoconElement> implements IHoconEl
       } else
         throw new NullPointerException("Path \"" + path.root.path() + "\" does not exist.");
     }
+  }
+
+  @Override
+  public String asString() {
+    throw new NoSuchMethodError("HoconMap cannot be represented as String");
   }
 
 }

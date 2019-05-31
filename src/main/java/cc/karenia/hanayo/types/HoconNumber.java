@@ -47,7 +47,7 @@ public class HoconNumber implements IHoconElement {
   }
 
   @Override
-  public String getOriginalString() {
+  public String asString() {
     return originalString;
   }
 

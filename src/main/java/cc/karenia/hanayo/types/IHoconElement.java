@@ -16,7 +16,7 @@ public interface IHoconElement {
    * 
    * @return the underlying string
    */
-  String getOriginalString();
+  String asString();
 
   /**
    * Concat this element with another element

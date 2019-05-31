@@ -60,4 +60,21 @@ public class HoconParserTest {
     assertEquals(parseResult.result.asDouble(), 1000010000d, 1);
 
   }
+
+  @Test
+  public void testSubstitution() {
+    var sub1 = "${a.c}".toCharArray();
+    var parseResult = HoconParser.parseSubstitution(sub1, 0);
+    assertEquals(parseResult.parseSuccess, true);
+    assertEquals(parseResult.result.isDetermined, true);
+    assertEquals(parseResult.result.path.name, "a");
+    assertEquals(parseResult.result.path.next.name, "c");
+
+    var sub2 = "${?b.c}".toCharArray();
+    parseResult = HoconParser.parseSubstitution(sub2, 0);
+    assertEquals(parseResult.parseSuccess, true);
+    assertEquals(parseResult.result.isDetermined, false);
+    assertEquals(parseResult.result.path.name, "b");
+    assertEquals(parseResult.result.path.next.name, "c");
+  }
 }

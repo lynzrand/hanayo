@@ -34,7 +34,7 @@ public class HoconSubstitution implements IHoconElement {
   }
 
   @Override
-  public String getOriginalString() {
+  public String asString() {
     return null;
   }
 

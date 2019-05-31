@@ -56,22 +56,22 @@ public class HoconParser {
   }
 
   static public IHoconElement parseDocument(char[] buffer) {
-    throw new RuntimeException("Method not implemented");
+    throw new NoSuchMethodError();
+    ;
   }
 
   static public ParseResult<HoconMap> parseList(final char[] buf, int ptr) {
 
-    throw new RuntimeException("Method not implemented");
+    throw new NoSuchMethodError();
   }
 
   static public ParseResult<HoconMap> parseMap(final char[] buf, int ptr) {
 
-    throw new RuntimeException("Method not implemented");
+    throw new NoSuchMethodError();
   }
 
   static ParseResult<IHoconElement> parseValue(final char[] buf, int ptr) {
-
-    throw new RuntimeException("Method not implemented");
+    throw new NoSuchMethodError();
   }
 
   static ParseResult<HoconSubstitution> parseSubstitution(final char[] buf, int ptr) {
