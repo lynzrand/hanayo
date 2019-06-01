@@ -2,7 +2,7 @@
 
 ![](res/img/logo.png)
 
-**Hanayo is not yet finished.**
+**Hanayo is finished but not tested. Contribute by submitting test cases!**
 
 Hanayo is an experimental HOCON parser written in plain Java for exercising and school homework.
 
@@ -40,11 +40,11 @@ Parser completion status for language grammars are listed below (see [this file]
 - [x] Separator
 - [x] KeyValuePair
 - [x] ElementSeparator
-- [ ] KeyValuePairs
-- [ ] Map
-- [ ] Values
-- [ ] Array
-- [ ] Document
+- [x] KeyValuePairs
+- [x] Map
+- [x] Values
+- [x] List
+- [x] Document
 
 [grammar]: https://github.com/01010101lzy/hanayo/blob/master/docs/hocon-language.txt
 
@@ -55,7 +55,7 @@ To make coding easier, Hanayo only implements a subset of HOCON. Its difference 
 - Consecutive dots in keys (_e.g. `path1..path2`_) are not considered as format error. They evaluate into empty path segments.
 - Hanayo uses an "early replace" strategy of value concatenation, opposing to the "read all then replace" strategy requested in the spec.
 - Includes are not implemented.
-- Duration and sizes are not implemented.
+- Duration and sizes are not yet implemented.
 
 ## Licensing
 

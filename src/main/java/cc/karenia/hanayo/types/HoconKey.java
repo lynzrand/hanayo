@@ -30,6 +30,11 @@ public class HoconKey {
     this.root = root;
   }
 
+  public void setNext(HoconKey next) {
+    this.next = next;
+    next.root = this.root;
+  }
+
   public String path() {
     if (this.next == null)
       return this.name;
@@ -45,7 +50,7 @@ public class HoconKey {
   }
 
   @Override
-  protected HoconKey clone() {
+  public HoconKey clone() {
     var newObj = new HoconKey(name, root);
     if (this.next != null)
       newObj.next = this.next.clone();

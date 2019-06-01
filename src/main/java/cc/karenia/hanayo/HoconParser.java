@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 
 import cc.karenia.hanayo.types.*;
 
-public class HoconParser {
+public final class HoconParser {
   static BitSet EolChars = new BitSet();
   static {
     EolChars.set('\n');
@@ -64,58 +64,190 @@ public class HoconParser {
     UnquotedStringDelimiters.set('\f');
   }
 
-  static public IHoconElement parse(String src) {
+  static public IHoconElement parse(String src)
+      throws HoconParseException, ArrayIndexOutOfBoundsException {
     // throw new RuntimeException("Method not implemented");
     return parseDocument(src.toCharArray());
   }
 
-  static public IHoconElement parseDocument(char[] buffer) {
-    throw new NoSuchMethodError();
+  static public IHoconElement parseDocument(char[] buf)
+      throws HoconParseException {
+    int ptr = 0;
+    ptr = skipWhitespaceAndComments(buf, ptr);
+
+    // Try parsing map
+    try {
+      return parseMap(buf, ptr, null, null).unwrap();
+    } catch (HoconParseException e) {
+      if (e.ptr != 0)
+        throw e;
+    }
+
+    // If this document is not a map, try parsing as a list
+    try {
+      return parseList(buf, ptr, null, null).unwrap();
+    } catch (HoconParseException e) {
+      if (e.ptr != 0)
+        throw e;
+    }
+
+    // If none of these work, try parsing as bracket-less map
+    try {
+      var map = new HoconMap();
+      ParseResult<Entry<HoconKey, IHoconElement>> result;
+
+      var root = map;
+      var currentPath = new HoconKey("{root}");
+
+      while (true) {
+        if (ptr >= buf.length)
+          break;
+
+        result = parseKeyValuePair(buf, ptr, root, currentPath);
+        ptr = result.newPtr;
+        var val = result.result;
+        map.setOrReplace(val.getKey(), val.getValue());
+
+        // Skip element separator
+        if (buf[ptr] == ',')
+          ptr++;
+
+        // Skip whitespace and comments
+        ptr = skipWhitespaceAndComments(buf, ptr);
+      }
+
+      return map;
+    } catch (HoconParseException e) {
+      if (e.ptr != ptr)
+        throw e;
+    }
+
+    throw new HoconParseException("Unable to parse this file as a HOCON config",
+        ptr);
   }
 
-  static public ParseResult<HoconMap> parseList(final char[] buf, int ptr,
-      IHoconPathResolvable root, HoconKey currentPath) {
+  static public ParseResult<HoconList> parseList(final char[] buf, int ptr,
+      IHoconPathResolvable root, HoconKey currentPath)
+      throws HoconParseException {
 
-    throw new NoSuchMethodError();
+    if (buf[ptr] != '[')
+      throw new HoconParseException("Expected '[' at the start of a list", ptr,
+          currentPath.clone());
+
+    ptr++;
+    ptr = skipWhitespaceAndComments(buf, ptr);
+
+    var list = new HoconList();
+    int index = 0;
+    ParseResult<? extends IHoconElement> result;
+
+    if (root == null) {
+      root = list;
+      currentPath = new HoconKey("[root]");
+    }
+
+    while (true) {
+      if (buf[ptr] == '}')
+        break;
+
+      currentPath.setNext(new HoconKey(Integer.toString(index)));
+
+      result = parseValue(buf, ptr, root, currentPath.next);
+      ptr = result.newPtr;
+      var el = result.result;
+
+      list.add(el);
+
+      // Skip element separator
+      if (buf[ptr] == ',')
+        ptr++;
+
+      // Skip whitespace and comments
+      ptr = skipWhitespaceAndComments(buf, ptr);
+    }
+
+    return ParseResult.success(ptr, list);
   }
 
   static public ParseResult<HoconMap> parseMap(final char[] buf, int ptr,
       IHoconPathResolvable root, HoconKey currentPath)
       throws HoconParseException {
+
     if (buf[ptr] != '{')
-      throw new HoconParseException("Expected '{' at the start of a Map", ptr);
-    throw new NoSuchMethodError();
+      throw new HoconParseException("Expected '{' at the start of a Map", ptr,
+          currentPath.clone());
+
+    ptr++;
+    ptr = skipWhitespaceAndComments(buf, ptr);
+
+    var map = new HoconMap();
+    ParseResult<Entry<HoconKey, IHoconElement>> result;
+
+    if (root == null) {
+      root = map;
+      currentPath = new HoconKey("{root}");
+    }
+
+    while (true) {
+      if (buf[ptr] == '}')
+        break;
+
+      result = parseKeyValuePair(buf, ptr, root, currentPath);
+      ptr = result.newPtr;
+      var val = result.result;
+      map.setOrReplace(val.getKey(), val.getValue());
+
+      // Skip element separator
+      if (buf[ptr] == ',')
+        ptr++;
+
+      // Skip whitespace and comments
+      ptr = skipWhitespaceAndComments(buf, ptr);
+    }
+
+    return ParseResult.success(ptr, map);
   }
 
-  static Entry<HoconKey, IHoconElement> parseKeyValuePair(final char[] buf,
-      int ptr, IHoconPathResolvable root, HoconKey currentPath)
-      throws HoconParseException {
+  static ParseResult<Entry<HoconKey, IHoconElement>> parseKeyValuePair(
+      final char[] buf, int ptr, IHoconPathResolvable root,
+      HoconKey currentPath) throws HoconParseException {
     var keyResult = parseKey(buf, ptr);
     var key = keyResult.result;
     ptr = keyResult.newPtr;
 
     ptr = skipWhitespace(buf, ptr);
-    currentPath.next = key;
+    currentPath.setNext(key);
 
     IHoconElement value;
     if (KeyValueSeparator.get(buf[ptr])) {
-      var valueResult = parseValue(buf, ptr, root, currentPath);
+      var valueResult = parseValue(buf, ptr, root, currentPath.next);
       value = valueResult.result;
       ptr = valueResult.newPtr;
     } else if (buf[ptr] == '{') {
-      var valueResult = parseMap(buf, ptr, root, currentPath);
+      var valueResult = parseMap(buf, ptr, root, currentPath.next);
       value = valueResult.result;
       ptr = valueResult.newPtr;
     } else if (buf[ptr] == '[') {
-      var valueResult = parseList(buf, ptr, root, currentPath);
+      var valueResult = parseList(buf, ptr, root, currentPath.next);
       value = valueResult.result;
       ptr = valueResult.newPtr;
     } else {
       throw new HoconParseException("Expected a value, map or list.", ptr);
     }
+
     currentPath.next = null;
     var entry = new SimpleEntry<HoconKey, IHoconElement>(key, value);
-    return entry;
+    return ParseResult.success(ptr, entry);
+  }
+
+  static int skipWhitespaceAndComments(final char[] buf, int ptr) {
+    int oldPtr;
+    do {
+      oldPtr = ptr;
+      ptr = skipWhitespace(buf, ptr);
+      ptr = skipComments(buf, ptr);
+    } while (ptr != oldPtr);
+    return ptr;
   }
 
   static ParseResult<? extends IHoconElement> parseValue(final char[] buf,
@@ -418,18 +550,20 @@ public class HoconParser {
       ptr++;
     }
     if (ptr == initPtr)
-      throw new HoconParseException("Empty string!", ptr);
+      throw new HoconParseException(String.format("Unexpected '%c'", buf[ptr]),
+          ptr);
     return ParseResult.success(ptr,
         String.copyValueOf(buf, initPtr, ptr - initPtr));
   }
 
-  static ParseResult<?> skipComments(final char[] buf, int ptr) {
-    if (buf[ptr] != '#' || (buf[ptr] != '/' && buf[ptr + 1] != '/'))
-      return ParseResult.fail(ptr);
+  static int skipComments(final char[] buf, int ptr) {
+    if (ptr + 1 >= buf.length || buf[ptr] != '#'
+        || (buf[ptr] != '/' && buf[ptr + 1] != '/'))
+      return ptr;
     else {
       while (!EolChars.get(buf[ptr]) && ptr < buf.length)
         ptr++;
-      return ParseResult.success(ptr);
+      return ptr;
     }
   }
 }
