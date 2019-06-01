@@ -41,8 +41,8 @@ public class HoconString implements IHoconElement {
     case List:
       return newElement;
     default:
-      throw new IllegalArgumentException(
-          String.format("Cannot concat %s with %s", this.getType(), newElement.getType()));
+      throw new IllegalArgumentException(String.format(
+          "Cannot concat %s with %s", this.getType(), newElement.getType()));
     }
   }
 

@@ -21,7 +21,8 @@ public interface IHoconElement {
   /**
    * Concat this element with another element
    * 
-   * @param newElement the new element to concat with
+   * @param newElement
+   *                     the new element to concat with
    * @return concat result
    */
   IHoconElement concat(IHoconElement newElement);

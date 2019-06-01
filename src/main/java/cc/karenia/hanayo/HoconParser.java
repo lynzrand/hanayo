@@ -73,20 +73,23 @@ public class HoconParser {
     throw new NoSuchMethodError();
   }
 
-  static public ParseResult<HoconMap> parseList(final char[] buf, int ptr, IHoconPathResolvable root,
-      HoconKey currentPath) {
+  static public ParseResult<HoconMap> parseList(final char[] buf, int ptr,
+      IHoconPathResolvable root, HoconKey currentPath) {
 
     throw new NoSuchMethodError();
   }
 
-  static public ParseResult<HoconMap> parseMap(final char[] buf, int ptr, IHoconPathResolvable root,
-      HoconKey currentPath) {
-
+  static public ParseResult<HoconMap> parseMap(final char[] buf, int ptr,
+      IHoconPathResolvable root, HoconKey currentPath)
+      throws HoconParseException {
+    if (buf[ptr] != '{')
+      throw new HoconParseException("Expected '{' at the start of a Map", ptr);
     throw new NoSuchMethodError();
   }
 
-  static Entry<HoconKey, IHoconElement> parseKeyValuePair(final char[] buf, int ptr, IHoconPathResolvable root,
-      HoconKey currentPath) throws HoconParseException {
+  static Entry<HoconKey, IHoconElement> parseKeyValuePair(final char[] buf,
+      int ptr, IHoconPathResolvable root, HoconKey currentPath)
+      throws HoconParseException {
     var keyResult = parseKey(buf, ptr);
     var key = keyResult.result;
     ptr = keyResult.newPtr;
@@ -115,8 +118,9 @@ public class HoconParser {
     return entry;
   }
 
-  static ParseResult<? extends IHoconElement> parseValue(final char[] buf, int ptr, IHoconPathResolvable root,
-      HoconKey currentPath) throws HoconParseException {
+  static ParseResult<? extends IHoconElement> parseValue(final char[] buf,
+      int ptr, IHoconPathResolvable root, HoconKey currentPath)
+      throws HoconParseException {
     IHoconElement value = null;
     ptr = skipWhitespace(buf, ptr);
 
@@ -140,7 +144,8 @@ public class HoconParser {
     return ParseResult.success(ptr, value);
   }
 
-  static ParseResult<? extends IHoconElement> parseValueSegment(final char[] buf, int ptr, IHoconPathResolvable root,
+  static ParseResult<? extends IHoconElement> parseValueSegment(
+      final char[] buf, int ptr, IHoconPathResolvable root,
       HoconKey currentPath) throws HoconParseException {
     var startChar = buf[ptr];
     if (Character.isWhitespace(startChar)) {
@@ -161,7 +166,8 @@ public class HoconParser {
     } else if (buf[ptr] == '$') {
       var subResult = parseSubstitution(buf, ptr);
       if (subResult.parseSuccess) {
-        return ParseResult.success(subResult.newPtr, subResult.result.resolve(root));
+        return ParseResult.success(subResult.newPtr,
+            subResult.result.resolve(root));
       } else {
         return subResult;
       }
@@ -175,7 +181,8 @@ public class HoconParser {
     }
   }
 
-  static ParseResult<HoconSubstitution> parseSubstitution(final char[] buf, int ptr) throws HoconParseException {
+  static ParseResult<HoconSubstitution> parseSubstitution(final char[] buf,
+      int ptr) throws HoconParseException {
     if (buf.length < ptr + 4 || !(buf[ptr] == '$' && buf[ptr + 1] == '{'))
       throw new HoconParseException("Expected substitution", ptr);
     var initPtr = ptr;
@@ -189,12 +196,15 @@ public class HoconParser {
 
     ptr = key.newPtr;
     if (buf[ptr] != '}')
-      throw new HoconParseException("Expected '}' at the end of a substitution", initPtr);
+      throw new HoconParseException("Expected '}' at the end of a substitution",
+          initPtr);
     ptr++;
-    return ParseResult.success(ptr, new HoconSubstitution(key.unwrap(), isDetermined));
+    return ParseResult.success(ptr,
+        new HoconSubstitution(key.unwrap(), isDetermined));
   }
 
-  static ParseResult<HoconNumber> parseNumber(final char[] buf, int ptr) throws HoconParseException {
+  static ParseResult<HoconNumber> parseNumber(final char[] buf, int ptr)
+      throws HoconParseException {
     var initPtr = ptr;
     if (buf[ptr] == '+' || buf[ptr] == '-')
       ptr++;
@@ -216,14 +226,16 @@ public class HoconParser {
     }
 
     // match exponent
-    if ((buf[ptr] == 'E' || buf[ptr] == 'e') && (ptr + 1 < buf.length && Character.isDigit(buf[ptr + 1]))) {
+    if ((buf[ptr] == 'E' || buf[ptr] == 'e')
+        && (ptr + 1 < buf.length && Character.isDigit(buf[ptr + 1]))) {
       ptr += 2;
       isInteger = false;
       while (ptr < buf.length && Character.isDigit(buf[ptr]))
         ptr++;
     }
 
-    return ParseResult.success(ptr, new HoconNumber(String.copyValueOf(buf, initPtr, ptr), isInteger));
+    return ParseResult.success(ptr,
+        new HoconNumber(String.copyValueOf(buf, initPtr, ptr), isInteger));
   }
 
   static ParseResult<?> parseEol(char[] buf, int ptr) {
@@ -245,7 +257,8 @@ public class HoconParser {
     return ptr;
   }
 
-  public static ParseResult<HoconKey> parseKey(final char[] buf, int ptr) throws HoconParseException {
+  public static ParseResult<HoconKey> parseKey(final char[] buf, int ptr)
+      throws HoconParseException {
     // Parse the first part of the key
     ParseResult<String> parseResult;
     if (buf[ptr] == '"')
@@ -275,8 +288,8 @@ public class HoconParser {
     return ParseResult.success(ptr, key);
   }
 
-  static ParseResult<HoconString> parseHoconString(final char[] buf, int ptr, boolean isQuoted, boolean isMultiline)
-      throws HoconParseException {
+  static ParseResult<HoconString> parseHoconString(final char[] buf, int ptr,
+      boolean isQuoted, boolean isMultiline) throws HoconParseException {
     ParseResult<String> result;
     if (isQuoted)
       result = parseQuotedString(buf, ptr);
@@ -290,9 +303,11 @@ public class HoconParser {
 
   }
 
-  static ParseResult<String> parseMultilineString(final char[] buf, int ptr) throws HoconParseException {
+  static ParseResult<String> parseMultilineString(final char[] buf, int ptr)
+      throws HoconParseException {
     if (!(buf[ptr] == '"' && buf[ptr + 1] == '"' && buf[ptr + 2] == '"'))
-      throw new HoconParseException("Expected multiline string to start with '\"\"\"'", ptr);
+      throw new HoconParseException(
+          "Expected multiline string to start with '\"\"\"'", ptr);
 
     ptr += 3;
     var initPtr = ptr;
@@ -309,12 +324,15 @@ public class HoconParser {
 
       ptr++;
     }
-    return ParseResult.success(ptr, String.copyValueOf(buf, initPtr, ptr - initPtr - 3));
+    return ParseResult.success(ptr,
+        String.copyValueOf(buf, initPtr, ptr - initPtr - 3));
   }
 
-  static ParseResult<String> parseQuotedString(final char[] buf, int ptr) throws HoconParseException {
+  static ParseResult<String> parseQuotedString(final char[] buf, int ptr)
+      throws HoconParseException {
     if (buf[ptr] != '"')
-      throw new HoconParseException("Expected quoted string to start with '\"'", ptr);
+      throw new HoconParseException("Expected quoted string to start with '\"'",
+          ptr);
     ptr++;
     StringBuilder sb = new StringBuilder();
     while (ptr < buf.length) {
@@ -377,8 +395,8 @@ public class HoconParser {
     return ParseResult.success(ptr, sb.toString());
   }
 
-  static ParseResult<String> parseUnquotedString(final char[] buf, int ptr, BitSet delimiters)
-      throws HoconParseException {
+  static ParseResult<String> parseUnquotedString(final char[] buf, int ptr,
+      BitSet delimiters) throws HoconParseException {
     var initPtr = ptr;
     while (ptr < buf.length) {
       char c = buf[ptr];
@@ -401,7 +419,8 @@ public class HoconParser {
     }
     if (ptr == initPtr)
       throw new HoconParseException("Empty string!", ptr);
-    return ParseResult.success(ptr, String.copyValueOf(buf, initPtr, ptr - initPtr));
+    return ParseResult.success(ptr,
+        String.copyValueOf(buf, initPtr, ptr - initPtr));
   }
 
   static ParseResult<?> skipComments(final char[] buf, int ptr) {

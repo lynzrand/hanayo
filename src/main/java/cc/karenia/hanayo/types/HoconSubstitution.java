@@ -9,14 +9,16 @@ public class HoconSubstitution implements IHoconElement {
     this.isDetermined = isDetermined;
   }
 
-  public HoconSubstitution(HoconKey path, boolean isDetermined, IHoconPathResolvable rootElement) {
+  public HoconSubstitution(HoconKey path, boolean isDetermined,
+      IHoconPathResolvable rootElement) {
     this.path = path;
     this.isDetermined = isDetermined;
   }
 
   public IHoconElement resolve(IHoconPathResolvable rootElement) {
     if (rootElement == null)
-      throw new NullPointerException("Cannot resolve substitution: root element is null.");
+      throw new NullPointerException(
+          "Cannot resolve substitution: root element is null.");
     if (isDetermined)
       return rootElement.getPath(path);
     else
@@ -39,7 +41,8 @@ public class HoconSubstitution implements IHoconElement {
 
   @Override
   public IHoconElement concat(IHoconElement newElement) {
-    throw new RuntimeException(String.format("Resolve this substitution (%s) before concatenation.", path.path()));
+    throw new RuntimeException(String.format(
+        "Resolve this substitution (%s) before concatenation.", path.path()));
   }
 
 }

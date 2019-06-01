@@ -4,7 +4,8 @@ import java.util.*;
 
 import cc.karenia.hanayo.HoconParser;
 
-public class HoconMap extends HashMap<String, IHoconElement> implements IHoconElement, IHoconPathResolvable {
+public class HoconMap extends HashMap<String, IHoconElement>
+    implements IHoconElement, IHoconPathResolvable {
   private static final long serialVersionUID = 1L;
 
   @Override
@@ -62,7 +63,8 @@ public class HoconMap extends HashMap<String, IHoconElement> implements IHoconEl
       if (val instanceof IHoconPathResolvable) {
         return ((IHoconPathResolvable) val).getPath(path.next);
       } else
-        throw new NullPointerException("Path \"" + path.root.path() + "\" does not exist.");
+        throw new NullPointerException(
+            "Path \"" + path.root.path() + "\" does not exist.");
     }
   }
 
