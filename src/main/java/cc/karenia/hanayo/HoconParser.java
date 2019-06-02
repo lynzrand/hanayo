@@ -369,6 +369,10 @@ public final class HoconParser {
 
   ParseResult<HoconNumber> parseNumber(int ptr) throws HoconParseException {
     var initPtr = ptr;
+
+    if (ptr >= buf.length)
+      throw new HoconParseException("Expected digit, got early EOF", ptr);
+
     if (buf[ptr] == '+' || buf[ptr] == '-')
       ptr++;
     if (!Character.isDigit(buf[ptr]))
@@ -381,7 +385,8 @@ public final class HoconParser {
       ptr++;
 
     // match decimal point and fractional part
-    if (buf[ptr] == '.' && Character.isDigit(buf[ptr + 1])) {
+    if (ptr + 1 < buf.length
+        && (buf[ptr] == '.' && Character.isDigit(buf[ptr + 1]))) {
       ptr += 2;
       isInteger = false;
       while (ptr < buf.length && Character.isDigit(buf[ptr]))
@@ -389,8 +394,8 @@ public final class HoconParser {
     }
 
     // match exponent
-    if ((buf[ptr] == 'E' || buf[ptr] == 'e')
-        && (ptr + 1 < buf.length && Character.isDigit(buf[ptr + 1]))) {
+    if (ptr + 1 < buf.length && ((buf[ptr] == 'E' || buf[ptr] == 'e')
+        && Character.isDigit(buf[ptr + 1]))) {
       ptr += 2;
       isInteger = false;
       while (ptr < buf.length && Character.isDigit(buf[ptr]))

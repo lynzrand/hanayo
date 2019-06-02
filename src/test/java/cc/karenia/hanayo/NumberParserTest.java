@@ -39,6 +39,22 @@ public class NumberParserTest {
     assertEquals(parseResult.result.isInteger, false);
     assertEquals(parseResult.result.value, "-10000.1e5");
     assertEquals(parseResult.result.asDouble(), -1000010000d, 1);
+  }
 
+  @Test
+  public void testNotNumber() {
+    try {
+      HoconParser.of("-aaaabbcc").parseNumber(0);
+      Assert.fail("Should not parse string preceded with minus sign");
+    } catch (HoconParseException e) {
+      assertEquals(e.ptr, 1);
+    }
+
+    try {
+      HoconParser.of("aaaabbcc").parseNumber(0);
+      Assert.fail("Should not parse string preceded with minus sign");
+    } catch (HoconParseException e) {
+      assertEquals(e.ptr, 0);
+    }
   }
 }
