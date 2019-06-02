@@ -50,7 +50,7 @@ public class HoconMap extends HashMap<String, IHoconElement>
 
   @Override
   public IHoconElement getPath(String path) throws HoconParseException {
-    var key = HoconParser.parseKey(path.toCharArray(), 0).unwrap();
+    var key = HoconParser.of(path).parseKey(0).unwrap();
     return this.getPath(key);
   }
 
