@@ -1,5 +1,7 @@
 package cc.karenia.hanayo.types;
 
+import java.util.Collections;
+
 public class HoconString implements IHoconElement {
   public String value;
   public boolean isQuoted;
@@ -60,6 +62,21 @@ public class HoconString implements IHoconElement {
   @Override
   public String asString() {
     return this.value;
+  }
+
+  @Override
+  public String toString() {
+    return this.toString(0, 2);
+  }
+
+  @Override
+  public String toString(int baseIndent, int indent) {
+    if (this.isMultiline)
+      return new StringBuilder().append("\"\"\"").append(this.value)
+          .append("\"\"\"").toString();
+    else
+      return new StringBuilder().append("\"").append(this.value).append("\"")
+          .toString();
   }
 
 }

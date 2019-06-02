@@ -25,13 +25,18 @@ public class HoconSubstitution implements IHoconElement {
       try {
         return rootElement.getPath(path);
       } catch (Exception e) {
-        return null;
+        return new NullSubstitution();
       }
   }
 
   @Override
   public HoconType getType() {
     return HoconType.Substitution;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("[Hocon Substitution to %s]", this.path.path());
   }
 
   @Override
@@ -43,6 +48,35 @@ public class HoconSubstitution implements IHoconElement {
   public IHoconElement concat(IHoconElement newElement) {
     throw new RuntimeException(String.format(
         "Resolve this substitution (%s) before concatenation.", path.path()));
+  }
+
+  @Override
+  public String toString(int baseIndent, int indent) {
+    return null;
+  }
+
+  public class NullSubstitution implements IHoconElement {
+
+    @Override
+    public HoconType getType() {
+      return HoconType.NullSubstitution;
+    }
+
+    @Override
+    public String asString() {
+      return null;
+    }
+
+    @Override
+    public IHoconElement concat(IHoconElement newElement) {
+      return newElement;
+    }
+
+    @Override
+    public String toString(int baseIndent, int indent) {
+      return "[Null Substitution]";
+    }
+
   }
 
 }

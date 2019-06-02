@@ -23,6 +23,13 @@ public final class HoconParser {
     ElementSeparator.set(',');
   }
 
+  static BitSet ElementEndings = new BitSet();
+  static {
+    ElementEndings.or(ElementSeparator);
+    ElementEndings.set('}');
+    ElementEndings.set(']');
+  }
+
   static BitSet KeyDelimiters = new BitSet();
   static {
     KeyDelimiters.set('.');
@@ -184,8 +191,10 @@ public final class HoconParser {
     }
 
     while (true) {
-      if (buf[ptr] == '}')
+      if (buf[ptr] == ']') {
+        ptr++;
         break;
+      }
 
       currentPath.setNext(new HoconKey(Integer.toString(index)));
 
@@ -202,6 +211,8 @@ public final class HoconParser {
       // Skip whitespace and comments
       ptr = skipWhitespaceAndComments(ptr);
     }
+
+    currentPath.next = null;
 
     return ParseResult.success(ptr, list);
   }
@@ -225,8 +236,10 @@ public final class HoconParser {
     }
 
     while (true) {
-      if (buf[ptr] == '}')
+      if (buf[ptr] == '}') {
+        ptr++;
         break;
+      }
 
       result = parseKeyValuePair(ptr, root, currentPath);
       ptr = result.newPtr;
@@ -247,6 +260,8 @@ public final class HoconParser {
   ParseResult<Entry<HoconKey, IHoconElement>> parseKeyValuePair(int ptr,
       IHoconPathResolvable root, HoconKey currentPath)
       throws HoconParseException {
+    ptr = skipWhitespace(ptr);
+
     var keyResult = parseKey(ptr);
     var key = keyResult.result;
     ptr = keyResult.newPtr;
@@ -256,6 +271,7 @@ public final class HoconParser {
 
     IHoconElement value;
     if (KeyValueSeparator.get(buf[ptr])) {
+      ptr++;
       var valueResult = parseValue(ptr, root, currentPath.next);
       value = valueResult.result;
       ptr = valueResult.newPtr;
@@ -297,7 +313,7 @@ public final class HoconParser {
     ptr = parseResult.newPtr;
     value = parseResult.result;
 
-    while (ptr < buf.length && !ElementSeparator.get(buf[ptr])) {
+    while (ptr < buf.length && !ElementEndings.get(buf[ptr])) {
       parseResult = parseValueSegment(ptr, root, currentPath);
 
       ptr = parseResult.newPtr;
@@ -315,17 +331,16 @@ public final class HoconParser {
   ParseResult<? extends IHoconElement> parseValueSegment(int ptr,
       IHoconPathResolvable root, HoconKey currentPath)
       throws HoconParseException {
-    var startChar = buf[ptr];
-    if (Character.isWhitespace(startChar)) {
+    if (Character.isWhitespace(buf[ptr])) {
       try {
         var result = parseHoconString(ptr, false, false);
         return result;
       } catch (HoconParseException e) {
         // Silently swallow error; Continue on next ones
       }
-
+      ptr = skipWhitespaceAndComments(ptr);
     }
-    if (Character.isDigit(startChar) || startChar == '+' || startChar == '-') {
+    if (Character.isDigit(buf[ptr]) || buf[ptr] == '+' || buf[ptr] == '-') {
       return parseNumber(ptr);
     } else if (buf[ptr] == '[') {
       return parseList(ptr, root, currentPath);
@@ -402,8 +417,8 @@ public final class HoconParser {
         ptr++;
     }
 
-    return ParseResult.success(ptr,
-        new HoconNumber(String.copyValueOf(buf, initPtr, ptr), isInteger));
+    return ParseResult.success(ptr, new HoconNumber(
+        String.copyValueOf(buf, initPtr, ptr - initPtr), isInteger));
   }
 
   ParseResult<?> parseEol(int ptr) {
@@ -583,8 +598,8 @@ public final class HoconParser {
       ptr++;
     }
     if (ptr == initPtr)
-      throw new HoconParseException(String.format("Unexpected '%c'", buf[ptr]),
-          ptr);
+      throw new HoconParseException(String.format(
+          "Unexpected '%c' at the start of an unquoted string", buf[ptr]), ptr);
     return ParseResult.success(ptr,
         String.copyValueOf(buf, initPtr, ptr - initPtr));
   }

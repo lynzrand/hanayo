@@ -66,9 +66,18 @@ public class HoconNumber implements IHoconElement {
     case List:
       return newElement;
     default:
-      throw new IllegalArgumentException(
-          String.format("Cannot concat %s with %s", this.getType(), newElement.getType()));
+      throw new IllegalArgumentException(String.format(
+          "Cannot concat %s with %s", this.getType(), newElement.getType()));
     }
+  }
 
+  @Override
+  public String toString() {
+    return this.toString(0, 2);
+  }
+
+  @Override
+  public String toString(int baseIndent, int indent) {
+    return this.value;
   }
 }

@@ -32,7 +32,8 @@ public class HoconKey {
 
   public void setNext(HoconKey next) {
     this.next = next;
-    next.root = this.root;
+    if (next != null)
+      next.root = this.root;
   }
 
   public String path() {

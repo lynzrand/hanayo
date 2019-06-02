@@ -40,4 +40,9 @@ public class HoconBoolean implements IHoconElement {
       return "false";
   }
 
+  @Override
+  public String toString(int baseIndent, int indent) {
+    return String.valueOf(this.value);
+  }
+
 }

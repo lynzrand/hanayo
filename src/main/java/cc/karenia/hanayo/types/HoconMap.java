@@ -45,7 +45,7 @@ public class HoconMap extends HashMap<String, IHoconElement>
 
   @Override
   public IHoconElement get(String key) {
-    return this.get(key);
+    return this.get((Object) key);
   }
 
   @Override
@@ -71,6 +71,30 @@ public class HoconMap extends HashMap<String, IHoconElement>
   @Override
   public String asString() {
     throw new NoSuchMethodError("HoconMap cannot be represented as String");
+  }
+
+  @Override
+  public String toString() {
+    return this.toString(0, 2);
+  }
+
+  @Override
+  public String toString(int baseIndent, int indent) {
+    var sb = new StringBuilder();
+    sb.append('{');
+    sb.append('\n');
+    forEach((key, val) -> {
+      sb.append(String.join("", Collections.nCopies(baseIndent + indent, " ")));
+      sb.append('"');
+      sb.append(key);
+      sb.append("\": ");
+      sb.append(val.toString(baseIndent + indent, indent));
+      sb.append(",\n");
+    });
+    sb.append(String.join("", Collections.nCopies(baseIndent, " ")));
+    sb.append('}');
+
+    return sb.toString();
   }
 
 }

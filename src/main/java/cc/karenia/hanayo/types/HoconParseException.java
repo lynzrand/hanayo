@@ -33,30 +33,27 @@ public class HoconParseException extends Exception {
   }
 
   @Override
+  public String getMessage() {
+    if (path == null)
+      return String.format("HoconParseException: %s; Occurred at pointer %d",
+          message, ptr);
+    else
+      return String.format(
+          "HoconParseException: %s; Occurred at pointer %d, path %s", message,
+          ptr, path.path());
+
+  }
+
+  @Override
   public String toString() {
-    if (!this.shouldGatherStacktrace) {
-      if (path == null)
-        return String.format("HoconParseException: %s; Occurred at pointer %d",
-            message, ptr);
-      else
-        return String.format(
-            "HoconParseException: %s; Occurred at pointer %d, path %s", message,
-            ptr, path.path());
-    } else {
-      StringBuilder sb = new StringBuilder();
-      if (path == null)
-        sb.append(String.format(
-            "HoconParseException: %s; Occurred at pointer %d.\n\nStacktrace:\n",
-            message, ptr));
-      else
-        sb.append(String.format(
-            "HoconParseException: %s; Occurred at pointer %d, path %s.\n\nStacktract:\n",
-            message, ptr, path.path()));
+    var sb = new StringBuilder(this.getMessage());
+    sb.append('\n');
+    if (shouldGatherStacktrace) {
       for (var st : this.getStackTrace()) {
         sb.append(st.toString());
         sb.append('\n');
       }
-      return sb.toString();
     }
+    return sb.toString();
   }
 }

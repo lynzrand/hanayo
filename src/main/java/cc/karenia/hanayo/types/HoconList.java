@@ -68,4 +68,22 @@ public class HoconList extends ArrayList<IHoconElement>
 
   private static final long serialVersionUID = 6163610075084687893L;
 
+  @Override
+  public String toString(int baseIndent, int indent) {
+    var sb = new StringBuilder();
+    sb.append('[');
+    sb.append('\n');
+
+    forEach((val) -> {
+      sb.append(String.join("", Collections.nCopies(baseIndent + indent, " ")));
+      sb.append(val.toString(baseIndent + indent, indent));
+      sb.append(",\n");
+    });
+
+    sb.append(String.join("", Collections.nCopies(baseIndent, " ")));
+    sb.append(']');
+
+    return sb.toString();
+  }
+
 }
