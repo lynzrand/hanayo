@@ -9,12 +9,6 @@ public class HoconSubstitution implements IHoconElement {
     this.isDetermined = isDetermined;
   }
 
-  public HoconSubstitution(HoconKey path, boolean isDetermined,
-      IHoconPathResolvable rootElement) {
-    this.path = path;
-    this.isDetermined = isDetermined;
-  }
-
   @Deprecated
   public IHoconElement resolve(IHoconPathResolvable rootElement) {
     if (rootElement == null)

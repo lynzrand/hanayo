@@ -45,4 +45,11 @@ public class HoconBoolean implements IHoconElement {
     return String.valueOf(this.value);
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HoconBoolean))
+      return false;
+    return ((HoconBoolean) obj).value == this.value;
+  }
+
 }

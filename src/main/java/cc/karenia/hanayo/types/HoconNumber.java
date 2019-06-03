@@ -80,4 +80,11 @@ public class HoconNumber implements IHoconElement {
   public String toString(int baseIndent, int indent) {
     return this.value;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HoconNumber))
+      return false;
+    return this.value.equals(((HoconNumber) obj).value);
+  }
 }

@@ -79,4 +79,15 @@ public class HoconKey {
       this.next = new HoconKey(keys, offset + 1, this.root);
     }
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HoconKey))
+      return false;
+
+    var other = (HoconKey) obj;
+    return this.name.equals(other.name)
+        && ((this.next == null && other.next == null)
+            || this.next.equals(other.next));
+  }
 }

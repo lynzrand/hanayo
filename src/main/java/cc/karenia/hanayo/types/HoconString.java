@@ -79,4 +79,13 @@ public class HoconString implements IHoconElement {
           .toString();
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HoconString))
+      return false;
+    var other = (HoconString) obj;
+    return ((this.isConcatResult == other.isConcatResult)
+        && (this.isMultiline == other.isConcatResult)
+        && (this.isQuoted == other.isQuoted)) && this.value.equals(other.value);
+  }
 }
