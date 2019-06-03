@@ -1,5 +1,8 @@
 package cc.karenia.hanayo.types;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * The key of a HOCON object's field
  */
@@ -56,5 +59,23 @@ public class HoconKey {
     if (this.next != null)
       newObj.next = this.next.clone();
     return newObj;
+  }
+
+  public HoconKey(List<String> keys) {
+    this(keys, 0, null);
+  }
+
+  HoconKey(List<String> keys, int offset, HoconKey root) {
+    this.name = keys.get(offset);
+    if (offset == 0) {
+      this.root = this;
+    } else {
+      this.root = root;
+    }
+    if (offset >= keys.size() - 1) {
+      this.next = null;
+    } else {
+      this.next = new HoconKey(keys, offset + 1, this.root);
+    }
   }
 }

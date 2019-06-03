@@ -81,6 +81,7 @@ public final class HoconParser {
   int startOffset;
 
   Stack<String> currentPath = new Stack<String>();
+  List<ConcatenationEntry> concats = new ArrayList<ConcatenationEntry>();
 
   public HoconParser() {
 
@@ -122,7 +123,7 @@ public final class HoconParser {
 
     // Try parsing map
     try {
-      return parseMap(ptr, null, null).unwrap();
+      return parseMap(ptr, null).unwrap();
     } catch (HoconParseException e) {
       if (e.ptr != 0)
         throw e;
@@ -130,7 +131,7 @@ public final class HoconParser {
 
     // If this document is not a map, try parsing as a list
     try {
-      return parseList(ptr, null, null).unwrap();
+      return parseList(ptr, null).unwrap();
     } catch (HoconParseException e) {
       if (e.ptr != 0)
         throw e;
@@ -142,13 +143,12 @@ public final class HoconParser {
       ParseResult<Entry<HoconKey, IHoconElement>> result;
 
       var root = map;
-      var currentPath = new HoconKey("{root}");
 
       while (true) {
         if (ptr >= buf.length)
           break;
 
-        result = parseKeyValuePair(ptr, root, currentPath);
+        result = parseKeyValuePair(ptr, root);
         ptr = result.newPtr;
         var val = result.result;
         map.setOrReplace(val.getKey(), val.getValue());
@@ -171,12 +171,12 @@ public final class HoconParser {
         ptr);
   }
 
-  public ParseResult<HoconList> parseList(int ptr, IHoconPathResolvable root,
-      HoconKey currentPath) throws HoconParseException {
+  public ParseResult<HoconList> parseList(int ptr, IHoconPathResolvable root)
+      throws HoconParseException {
 
     if (buf[ptr] != '[')
       throw new HoconParseException("Expected '[' at the start of a list", ptr,
-          currentPath.clone());
+          new HoconKey(currentPath));
 
     ptr++;
     ptr = skipWhitespaceAndComments(ptr);
@@ -187,7 +187,6 @@ public final class HoconParser {
 
     if (root == null) {
       root = list;
-      currentPath = new HoconKey("[root]");
     }
 
     while (true) {
@@ -196,9 +195,9 @@ public final class HoconParser {
         break;
       }
 
-      currentPath.setNext(new HoconKey(Integer.toString(index)));
+      currentPath.push(Integer.toString(index));
 
-      result = parseValue(ptr, root, currentPath.next);
+      result = parseValue(ptr, root);
       ptr = result.newPtr;
       var el = result.result;
 
@@ -208,21 +207,21 @@ public final class HoconParser {
       if (buf[ptr] == ',')
         ptr++;
 
+      currentPath.pop();
+
       // Skip whitespace and comments
       ptr = skipWhitespaceAndComments(ptr);
     }
 
-    currentPath.next = null;
-
     return ParseResult.success(ptr, list);
   }
 
-  public ParseResult<HoconMap> parseMap(int ptr, IHoconPathResolvable root,
-      HoconKey currentPath) throws HoconParseException {
+  public ParseResult<HoconMap> parseMap(int ptr, IHoconPathResolvable root)
+      throws HoconParseException {
 
     if (buf[ptr] != '{')
       throw new HoconParseException("Expected '{' at the start of a Map", ptr,
-          currentPath.clone());
+          new HoconKey(currentPath));
 
     ptr++;
     ptr = skipWhitespaceAndComments(ptr);
@@ -232,7 +231,6 @@ public final class HoconParser {
 
     if (root == null) {
       root = map;
-      currentPath = new HoconKey("{root}");
     }
 
     while (true) {
@@ -241,7 +239,7 @@ public final class HoconParser {
         break;
       }
 
-      result = parseKeyValuePair(ptr, root, currentPath);
+      result = parseKeyValuePair(ptr, root);
       ptr = result.newPtr;
       var val = result.result;
       map.setOrReplace(val.getKey(), val.getValue());
@@ -258,8 +256,7 @@ public final class HoconParser {
   }
 
   ParseResult<Entry<HoconKey, IHoconElement>> parseKeyValuePair(int ptr,
-      IHoconPathResolvable root, HoconKey currentPath)
-      throws HoconParseException {
+      IHoconPathResolvable root) throws HoconParseException {
     ptr = skipWhitespace(ptr);
 
     var keyResult = parseKey(ptr);
@@ -267,27 +264,27 @@ public final class HoconParser {
     ptr = keyResult.newPtr;
 
     ptr = skipWhitespace(ptr);
-    currentPath.setNext(key);
+    currentPath.push(key.name);
 
     IHoconElement value;
     if (KeyValueSeparator.get(buf[ptr])) {
       ptr++;
-      var valueResult = parseValue(ptr, root, currentPath.next);
+      var valueResult = parseValue(ptr, root);
       value = valueResult.result;
       ptr = valueResult.newPtr;
     } else if (buf[ptr] == '{') {
-      var valueResult = parseMap(ptr, root, currentPath.next);
+      var valueResult = parseMap(ptr, root);
       value = valueResult.result;
       ptr = valueResult.newPtr;
     } else if (buf[ptr] == '[') {
-      var valueResult = parseList(ptr, root, currentPath.next);
+      var valueResult = parseList(ptr, root);
       value = valueResult.result;
       ptr = valueResult.newPtr;
     } else {
       throw new HoconParseException("Expected a value, map or list.", ptr);
     }
 
-    currentPath.next = null;
+    currentPath.pop();
     var entry = new SimpleEntry<HoconKey, IHoconElement>(key, value);
     return ParseResult.success(ptr, entry);
   }
@@ -303,18 +300,17 @@ public final class HoconParser {
   }
 
   ParseResult<? extends IHoconElement> parseValue(int ptr,
-      IHoconPathResolvable root, HoconKey currentPath)
-      throws HoconParseException {
+      IHoconPathResolvable root) throws HoconParseException {
     IHoconElement value = null;
     ptr = skipWhitespace(ptr);
 
-    var parseResult = parseValueSegment(ptr, root, currentPath);
+    var parseResult = parseValueSegment(ptr, root);
 
     ptr = parseResult.newPtr;
     value = parseResult.result;
 
     while (ptr < buf.length && !ElementEndings.get(buf[ptr])) {
-      parseResult = parseValueSegment(ptr, root, currentPath);
+      parseResult = parseValueSegment(ptr, root);
 
       ptr = parseResult.newPtr;
       value = value.concat(parseResult.result);
@@ -329,8 +325,7 @@ public final class HoconParser {
   }
 
   ParseResult<? extends IHoconElement> parseValueSegment(int ptr,
-      IHoconPathResolvable root, HoconKey currentPath)
-      throws HoconParseException {
+      IHoconPathResolvable root) throws HoconParseException {
     if (Character.isWhitespace(buf[ptr])) {
       try {
         var result = parseHoconString(ptr, false, false);
@@ -343,9 +338,9 @@ public final class HoconParser {
     if (Character.isDigit(buf[ptr]) || buf[ptr] == '+' || buf[ptr] == '-') {
       return parseNumber(ptr);
     } else if (buf[ptr] == '[') {
-      return parseList(ptr, root, currentPath);
+      return parseList(ptr, root);
     } else if (buf[ptr] == '{') {
-      return parseMap(ptr, root, currentPath);
+      return parseMap(ptr, root);
     } else if (buf[ptr] == '$') {
       var subResult = parseSubstitution(ptr);
       return ParseResult.success(subResult.newPtr,
@@ -372,7 +367,6 @@ public final class HoconParser {
       ptr++;
     }
     var key = parseKey(ptr);
-
     ptr = key.newPtr;
     if (buf[ptr] != '}')
       throw new HoconParseException("Expected '}' at the end of a substitution",

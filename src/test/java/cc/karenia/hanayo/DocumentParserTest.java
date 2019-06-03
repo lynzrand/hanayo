@@ -36,6 +36,17 @@ public class DocumentParserTest {
   }
 
   @Test
+  public void testParseNestedKeyDocument() throws HoconParseException {
+    var result = HoconParser.of("{\n  else.key: value , \n}").parseDocument();
+    assertEquals(result.getType(), HoconType.Map);
+    var mapResult = (HoconMap) result;
+    var outerResultValue = mapResult.get("else");
+    assertEquals(outerResultValue.getType(), HoconType.Map);
+    var innerResultValue = ((HoconMap) outerResultValue).get("key");
+    assertEquals(innerResultValue.asString(), "value");
+  }
+
+  @Test
   public void testParseNestedArrayMapDocument() throws HoconParseException {
     var result = HoconParser.of("{\n  key: [ 1, 2, 4, ], \n}").parseDocument();
     assertEquals(HoconType.Map, result.getType());

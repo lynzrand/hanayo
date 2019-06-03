@@ -41,9 +41,9 @@ public class HoconParserTest {
   @Test
   public void testParseValueStringConcatenation() throws Throwable {
     var valueTest = "-123abc";
-    var parseResult = HoconParser.of(valueTest).parseValueSegment(0, null, null)
+    var parseResult = HoconParser.of(valueTest).parseValueSegment(0, null)
         .unwrapThrow();
-    var valueParseResult = HoconParser.of(valueTest).parseValue(0, null, null)
+    var valueParseResult = HoconParser.of(valueTest).parseValue(0, null)
         .unwrapThrow();
 
     assertEquals(parseResult.asString(), "-123");
