@@ -81,7 +81,7 @@ public final class HoconParser {
   int startOffset;
 
   Stack<String> currentPath = new Stack<String>();
-  List<ConcatenationEntry> concats = new ArrayList<ConcatenationEntry>();
+  Stack<IHoconPathResolvable> pathStack = new Stack<IHoconPathResolvable>();
 
   public HoconParser() {
 
@@ -99,6 +99,7 @@ public final class HoconParser {
     buf = str.toCharArray();
     startOffset = 0;
     currentPath.clear();
+    pathStack.clear();
     return this;
   }
 
@@ -106,6 +107,7 @@ public final class HoconParser {
     buf = str.toCharArray();
     offset = 0;
     currentPath.clear();
+    pathStack.clear();
     return this;
   }
 
@@ -143,6 +145,7 @@ public final class HoconParser {
       ParseResult<Entry<HoconKey, IHoconElement>> result;
 
       var root = map;
+      pathStack.push(map);
 
       while (true) {
         if (ptr >= buf.length)
@@ -182,6 +185,7 @@ public final class HoconParser {
     ptr = skipWhitespaceAndComments(ptr);
 
     var list = new HoconList();
+    pathStack.push(list);
     int index = 0;
     ParseResult<? extends IHoconElement> result;
 
@@ -212,6 +216,7 @@ public final class HoconParser {
       // Skip whitespace and comments
       ptr = skipWhitespaceAndComments(ptr);
     }
+    pathStack.pop();
 
     return ParseResult.success(ptr, list);
   }
@@ -227,6 +232,7 @@ public final class HoconParser {
     ptr = skipWhitespaceAndComments(ptr);
 
     var map = new HoconMap();
+    pathStack.push(map);
     ParseResult<Entry<HoconKey, IHoconElement>> result;
 
     if (root == null) {
@@ -251,7 +257,7 @@ public final class HoconParser {
       // Skip whitespace and comments
       ptr = skipWhitespaceAndComments(ptr);
     }
-
+    pathStack.pop();
     return ParseResult.success(ptr, map);
   }
 
@@ -344,7 +350,7 @@ public final class HoconParser {
     } else if (buf[ptr] == '$') {
       var subResult = parseSubstitution(ptr);
       return ParseResult.success(subResult.newPtr,
-          subResult.result.resolve(root));
+          resolveSubstitutionOnCurrentPath(subResult.result));
     } else if (buf[ptr] == '"') {
       if (ptr + 3 > buf.length && buf[ptr + 1] == '"' && buf[ptr + 2] == '"')
         return parseHoconString(ptr, false, true);
@@ -353,6 +359,32 @@ public final class HoconParser {
     } else {
       return parseHoconString(ptr, false, false);
     }
+  }
+
+  public IHoconElement resolveSubstitutionOnCurrentPath(HoconSubstitution sub)
+      throws HoconParseException {
+    // Find common path
+    var targetPath = sub.path;
+    int ptr = 0;
+    while (targetPath != null && ptr < currentPath.size() - 1) {
+      if (!targetPath.name.equals(currentPath.get(ptr)))
+        break;
+      targetPath = targetPath.next;
+      ptr++;
+    }
+    if (targetPath == null)
+      throw new HoconParseException("Invalid self referential", ptr);
+
+    var latestCommonAncestor = pathStack.get(ptr);
+
+    if (sub.isDetermined)
+      return latestCommonAncestor.getPath(targetPath);
+    else
+      try {
+        return latestCommonAncestor.getPath(targetPath);
+      } catch (Exception e) {
+        return new HoconSubstitution.NullSubstitution();
+      }
   }
 
   ParseResult<HoconSubstitution> parseSubstitution(int ptr)

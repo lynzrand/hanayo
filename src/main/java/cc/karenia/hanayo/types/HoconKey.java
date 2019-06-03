@@ -16,6 +16,7 @@ public class HoconKey {
    * The next part in key path
    */
   public HoconKey next;
+
   /**
    * The root of this key
    */

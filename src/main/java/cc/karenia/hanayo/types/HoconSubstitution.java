@@ -15,6 +15,7 @@ public class HoconSubstitution implements IHoconElement {
     this.isDetermined = isDetermined;
   }
 
+  @Deprecated
   public IHoconElement resolve(IHoconPathResolvable rootElement) {
     if (rootElement == null)
       throw new NullPointerException(
@@ -55,7 +56,7 @@ public class HoconSubstitution implements IHoconElement {
     return null;
   }
 
-  public class NullSubstitution implements IHoconElement {
+  public static class NullSubstitution implements IHoconElement {
 
     @Override
     public HoconType getType() {
