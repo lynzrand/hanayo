@@ -50,7 +50,7 @@ To make coding easier, Hanayo only implements a subset of HOCON. Its difference 
 
 - ~~Consecutive dots in keys (_e.g. `path1..path2`_) are not considered as format error. They evaluate into empty path segments.~~ Strategy changed to disallow empty unquoted string being parsed.
 - Hanayo uses an "early replace" strategy of value concatenation, opposing to the "read all then replace" strategy requested in the spec. This means later values can replace substitutions.
-- Includes are not implemented.
+- Includes (including finding environment vars) are not implemented.
 - Duration and sizes are not implemented.
 
 ## Licensing

@@ -4,6 +4,9 @@ import java.util.*;
 
 import cc.karenia.hanayo.HoconParser;
 
+/**
+ * Represents a Map in a Hocon document.
+ */
 public class HoconMap extends HashMap<String, IHoconElement>
     implements IHoconElement, IHoconPathResolvable {
   private static final long serialVersionUID = 1L;
@@ -25,6 +28,7 @@ public class HoconMap extends HashMap<String, IHoconElement>
     }
   }
 
+  @Override
   public IHoconElement concat(IHoconElement newElement) {
     if (newElement instanceof HoconMap) {
       var map = (HoconMap) newElement;

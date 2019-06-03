@@ -1,24 +1,55 @@
 package cc.karenia.hanayo.types;
 
+/**
+ * Represents an error the parser meets when parsing a file.
+ */
 public class HoconParseException extends Exception {
 
   private static final long serialVersionUID = -4460218072445886387L;
+
+  /** The path when the error occurred */
   public HoconKey path;
+  /** The offset in string when the error orccurred */
   public int ptr;
+  /** The message of this error */
   public String message;
+
+  /**
+   * Should we gather stacktraces when throwing this exception? Defaults to
+   * false to improve performance.
+   */
   public static boolean shouldGatherStacktrace = false;
 
+  /**
+   * Initialize a new exception.
+   * 
+   * @param message The message to leaveoccurred
+   * @param ptr     the offset when the error occurred
+   * @param path    the path in document when the error occurred
+   */
   public HoconParseException(String message, int ptr, HoconKey path) {
     this.message = message;
     this.ptr = ptr;
     this.path = path;
   }
 
+  /**
+   * Initialize a new exception.
+   * 
+   * @param message The message to leaveoccurred
+   * @param ptr     the offset when the error occurred
+   */
   public HoconParseException(String message, int ptr) {
     this.message = message;
     this.ptr = ptr;
   }
 
+  /**
+   * Initialize a new exception.
+   * 
+   * @param ptr  the offset when the error occurred
+   * @param path the path in document when the error occurred
+   */
   public HoconParseException(int ptr, HoconKey path) {
     this.message = null;
     this.ptr = ptr;

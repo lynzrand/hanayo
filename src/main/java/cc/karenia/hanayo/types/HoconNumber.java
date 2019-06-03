@@ -1,42 +1,92 @@
 package cc.karenia.hanayo.types;
 
+/**
+ * Represents a number in a Hocon document.
+ * <p>
+ * The number is parsed only on demand.
+ * </p>
+ */
 public class HoconNumber implements IHoconElement {
+  /** The string representation of this number */
   public String value;
+  /** Can this number be parsed as an integer? */
   public boolean isInteger;
 
+  /**
+   * Initialize a new number.
+   * 
+   * @param originalString the string representation
+   * @param isInteger      true if this number can be parsed as an integer
+   */
   public HoconNumber(String originalString, boolean isInteger) {
     this.value = originalString;
     this.isInteger = isInteger;
   }
 
-  public long asLong() {
+  /**
+   * Parse this number as Long
+   * 
+   * @return the parsed number
+   * @throws NumberFormatException thrown when this number cannot be parsed.
+   */
+  public long asLong() throws NumberFormatException {
     if (!isInteger)
       throw new NumberFormatException("This number is not an integer");
     return Long.parseLong(value);
   }
 
-  public int asInt() {
+  /**
+   * Parse this number as Int
+   * 
+   * @return the parsed number
+   * @throws NumberFormatException thrown when this number cannot be parsed.
+   */
+  public int asInt() throws NumberFormatException {
     if (!isInteger)
       throw new NumberFormatException("This number is not an integer");
     return Integer.parseInt(value);
   }
 
-  public short asShort() {
+  /**
+   * Parse this number as Short
+   * 
+   * @return the parsed number
+   * @throws NumberFormatException thrown when this number cannot be parsed.
+   */
+  public short asShort() throws NumberFormatException {
     if (!isInteger)
       throw new NumberFormatException("This number is not an integer");
     return Short.parseShort(value);
   }
 
-  public byte asByte() {
+  /**
+   * Parse this number as Byte
+   * 
+   * @return the parsed number
+   * @throws NumberFormatException thrown when this number cannot be parsed.
+   */
+  public byte asByte() throws NumberFormatException {
     if (!isInteger)
       throw new NumberFormatException("This number is not an integer");
     return Byte.parseByte(value);
   }
 
+  /**
+   * Parse this number as Double
+   * 
+   * @return the parsed number
+   * @throws NumberFormatException thrown when this number cannot be parsed.
+   */
   public double asDouble() {
     return Double.parseDouble(value);
   }
 
+  /**
+   * Parse this number as float
+   * 
+   * @return the parsed number
+   * @throws NumberFormatException thrown when this number cannot be parsed.
+   */
   public float asFloat() {
     return Float.parseFloat(value);
   }

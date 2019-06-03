@@ -9,7 +9,15 @@ import java.util.Map.Entry;
 
 import cc.karenia.hanayo.types.*;
 
+/**
+ * A parser for Hocon documents.
+ * 
+ * @author Rynco Maekawa
+ */
 public final class HoconParser {
+  /**
+   * Characters that indicate the end of a line.
+   */
   static BitSet EolChars = new BitSet();
   static {
     EolChars.set('\n');
@@ -17,12 +25,18 @@ public final class HoconParser {
     EolChars.set('\f');
   }
 
+  /**
+   * Characters that indicates the separation between elements.
+   */
   static BitSet ElementSeparator = new BitSet();
   static {
     ElementSeparator.or(EolChars);
     ElementSeparator.set(',');
   }
 
+  /**
+   * Characters that indicates the end of an element.
+   */
   static BitSet ElementEndings = new BitSet();
   static {
     ElementEndings.or(ElementSeparator);
@@ -30,6 +44,9 @@ public final class HoconParser {
     ElementEndings.set(']');
   }
 
+  /**
+   * Characters that indicates the end of a key in a key-value pair.
+   */
   static BitSet KeyDelimiters = new BitSet();
   static {
     KeyDelimiters.set('.');
@@ -41,12 +58,23 @@ public final class HoconParser {
     KeyDelimiters.set(']');
   }
 
+  /**
+   * Characters that directly separates the key and the value in a key-value
+   * pair.
+   */
   static BitSet KeyValueSeparator = new BitSet();
   static {
     KeyValueSeparator.set(':');
     KeyValueSeparator.set('=');
   }
 
+  /**
+   * Characters that indicates the end of an unquoted string.
+   * 
+   * <p>
+   * These characters are written as specified in the HOCON Spec.
+   * </p>
+   */
   static BitSet UnquotedStringDelimiters = new BitSet();
   static {
     // UnquotedStringForbiddenChars.set('$');
@@ -71,30 +99,66 @@ public final class HoconParser {
     UnquotedStringDelimiters.set('\f');
   }
 
-  static public IHoconElement parse(String src)
-      throws HoconParseException, ArrayIndexOutOfBoundsException {
+  /**
+   * Initiate a new HoconParser instance and parse the given string of text.
+   * 
+   * @param src the string of text to be parsed
+   * @return the resulting IHoconElement
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
+  static public IHoconElement parse(String src) throws HoconParseException {
     // throw new RuntimeException("Method not implemented");
     return new HoconParser(src).parseDocument();
   }
 
+  /** The character buffer used by the parser */
   char[] buf;
+  /** The start position for the parsing process */
   int startOffset;
 
+  /** The current path this parser is parsing at */
   Stack<String> currentPath = new Stack<String>();
+  /** The stack of path elements this parser has gone through */
   Stack<IHoconPathResolvable> pathStack = new Stack<IHoconPathResolvable>();
 
+  /**
+   * Initiate an empty parser.
+   * <p>
+   * Specify the content needing to be parsed with
+   * {@see HoconParser#with(String)}.
+   * </p>
+   */
   public HoconParser() {
 
   }
 
+  /**
+   * Initiate a parser with the specified string to parse.
+   * 
+   * @param str the string to parse.
+   */
   public HoconParser(String str) {
     this.with(str);
   }
 
+  /**
+   * Initiate a parser with specified string and initial offset.
+   * 
+   * @param str    the string to parse
+   * @param offset initial offset
+   */
   public HoconParser(String str, int offset) {
     this.with(str, offset);
   }
 
+  /**
+   * Specify the string to parse.
+   * 
+   * @param str the string to parse
+   * @return the parser itself
+   */
   public HoconParser with(String str) {
     buf = str.toCharArray();
     startOffset = 0;
@@ -103,6 +167,13 @@ public final class HoconParser {
     return this;
   }
 
+  /**
+   * Specify the string to parse and an initial offset.
+   * 
+   * @param str    the string to parse
+   * @param offset initial offset
+   * @return the parser itself
+   */
   public HoconParser with(String str, int offset) {
     buf = str.toCharArray();
     offset = 0;
@@ -111,14 +182,34 @@ public final class HoconParser {
     return this;
   }
 
+  /**
+   * Initiate a parser with a string to parse.
+   * 
+   * @param str the string to parse
+   * @return
+   */
   public static HoconParser of(String str) {
     return new HoconParser(str);
   }
 
+  /**
+   * Initiate a parser with a string to parse and an initial offset.
+   * 
+   * @param str    the string to parse
+   * @param offset initial offset
+   * @return
+   */
   public static HoconParser of(String str, int offset) {
     return new HoconParser(str, offset);
   }
 
+  /**
+   * Parse the string as a HOCON document.
+   * 
+   * @return the parsed document
+   * @throws HoconParseException thrown when the parser cannot parse the string
+   *                             a document
+   */
   public IHoconElement parseDocument() throws HoconParseException {
     int ptr = startOffset;
     ptr = skipWhitespaceAndComments(ptr);
@@ -174,6 +265,16 @@ public final class HoconParser {
         ptr);
   }
 
+  /**
+   * Parse a list from the buffer
+   * 
+   * @param ptr  the offset to start with
+   * @param root the root element of the parse tree
+   * @return the parsed list
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   public ParseResult<HoconList> parseList(int ptr, IHoconPathResolvable root)
       throws HoconParseException {
 
@@ -221,6 +322,16 @@ public final class HoconParser {
     return ParseResult.success(ptr, list);
   }
 
+  /**
+   * Parse a map from the buffer.
+   * 
+   * @param ptr  the offset to start with
+   * @param root the root object of the parse tree
+   * @return the parsed map
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   public ParseResult<HoconMap> parseMap(int ptr, IHoconPathResolvable root)
       throws HoconParseException {
 
@@ -261,6 +372,16 @@ public final class HoconParser {
     return ParseResult.success(ptr, map);
   }
 
+  /**
+   * Parse a key-value pair from the buffer.
+   * 
+   * @param ptr  the offset to start with
+   * @param root the root element of the parse tree
+   * @return the parsed key-value pair
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   ParseResult<Entry<HoconKey, IHoconElement>> parseKeyValuePair(int ptr,
       IHoconPathResolvable root) throws HoconParseException {
     ptr = skipWhitespace(ptr);
@@ -295,6 +416,12 @@ public final class HoconParser {
     return ParseResult.success(ptr, entry);
   }
 
+  /**
+   * Skips whitespace and comments.
+   * 
+   * @param ptr the offset to start with
+   * @return the new offset after whitespaces and comments
+   */
   int skipWhitespaceAndComments(int ptr) {
     int oldPtr;
     do {
@@ -305,6 +432,16 @@ public final class HoconParser {
     return ptr;
   }
 
+  /**
+   * Parse a value from buffer
+   * 
+   * @param ptr  the offset to start with
+   * @param root the root of the parse tree
+   * @return the parsed value element
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   ParseResult<? extends IHoconElement> parseValue(int ptr,
       IHoconPathResolvable root) throws HoconParseException {
     IHoconElement value = null;
@@ -330,6 +467,16 @@ public final class HoconParser {
     return ParseResult.success(ptr, value);
   }
 
+  /**
+   * Parse a value segment from buffer
+   * 
+   * @param ptr  the offset to start with
+   * @param root the root of the parse tree
+   * @return the parsed value segment
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   ParseResult<? extends IHoconElement> parseValueSegment(int ptr,
       IHoconPathResolvable root) throws HoconParseException {
     if (Character.isWhitespace(buf[ptr])) {
@@ -361,6 +508,13 @@ public final class HoconParser {
     }
   }
 
+  /**
+   * Resolves a substitution when parsing.
+   * 
+   * @param sub the substitution to resolve
+   * @return the resolved target element
+   * @throws HoconParseException thrown when the substitution is invalid
+   */
   public IHoconElement resolveSubstitutionOnCurrentPath(HoconSubstitution sub)
       throws HoconParseException {
     // Find common path
@@ -387,6 +541,15 @@ public final class HoconParser {
       }
   }
 
+  /**
+   * Parse a substitution from buffer
+   * 
+   * @param ptr the offset to start with
+   * @return the parsed substitution
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   ParseResult<HoconSubstitution> parseSubstitution(int ptr)
       throws HoconParseException {
     if (buf.length < ptr + 4 || !(buf[ptr] == '$' && buf[ptr + 1] == '{'))
@@ -408,6 +571,15 @@ public final class HoconParser {
         new HoconSubstitution(key.unwrap(), isDetermined));
   }
 
+  /**
+   * Parse a number from buffer
+   * 
+   * @param ptr the offset to start with
+   * @return the parsed number
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   ParseResult<HoconNumber> parseNumber(int ptr) throws HoconParseException {
     var initPtr = ptr;
 
@@ -447,6 +619,15 @@ public final class HoconParser {
         String.copyValueOf(buf, initPtr, ptr - initPtr), isInteger));
   }
 
+  /**
+   * Parse an end-of-line character from buffer
+   * 
+   * @param ptr the offset to start with
+   * @return the new offset. Fail if no EOL was found
+   *         <p>
+   *         (TODO: change the representation method)
+   *         </p>
+   */
   ParseResult<?> parseEol(int ptr) {
     if (buf[ptr] == '\n') {
       ptr++;
@@ -460,12 +641,27 @@ public final class HoconParser {
     return ParseResult.fail(ptr);
   }
 
+  /**
+   * Skips whitespace in buffer
+   * 
+   * @param ptr the offset to start with
+   * @return the new offset
+   */
   int skipWhitespace(int ptr) {
     while (ptr < buf.length && Character.isWhitespace(buf[ptr]))
       ptr++;
     return ptr;
   }
 
+  /**
+   * Parses a key from buffer
+   * 
+   * @param ptr the offset to start with
+   * @return the parsed key
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   public ParseResult<HoconKey> parseKey(int ptr) throws HoconParseException {
     // Parse the first part of the key
     ParseResult<String> parseResult;
@@ -496,6 +692,18 @@ public final class HoconParser {
     return ParseResult.success(ptr, key);
   }
 
+  /**
+   * Parses a string from buffer. This method wraps the parsed string with a
+   * {@link HoconString} wrapper.
+   * 
+   * @param ptr         the offset to start with
+   * @param isQuoted    is this string quoted? ({@code "like this"})
+   * @param isMultiline is this a multiline (triple-quoted) string?
+   * @return the parsed string
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   ParseResult<HoconString> parseHoconString(int ptr, boolean isQuoted,
       boolean isMultiline) throws HoconParseException {
     ParseResult<String> result;
@@ -511,6 +719,19 @@ public final class HoconParser {
 
   }
 
+  /**
+   * Parses a multiline string from buffer.
+   * <p>
+   * A multiline string is surrounded by triple quotes
+   * ({@code """a multiline string"""})
+   * </p>
+   * 
+   * @param ptr the pointer to start with
+   * @return the parsed string
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   ParseResult<String> parseMultilineString(int ptr) throws HoconParseException {
     if (!(buf[ptr] == '"' && buf[ptr + 1] == '"' && buf[ptr + 2] == '"'))
       throw new HoconParseException(
@@ -535,6 +756,16 @@ public final class HoconParser {
         String.copyValueOf(buf, initPtr, ptr - initPtr - 3));
   }
 
+  /**
+   * Parses a quoted string.
+   * <p>
+   * A quoted string is surrounded by double-quotes ({@code "like this"}).
+   * </p>
+   * 
+   * @param ptr the pointer to start with
+   * @return the parsed string
+   * @throws HoconParseException
+   */
   ParseResult<String> parseQuotedString(int ptr) throws HoconParseException {
     if (buf[ptr] != '"')
       throw new HoconParseException("Expected quoted string to start with '\"'",
@@ -601,6 +832,17 @@ public final class HoconParser {
     return ParseResult.success(ptr, sb.toString());
   }
 
+  /**
+   * Parse an unquoted string from buffer. This method is also used to parse the
+   * keys in maps.
+   * 
+   * @param ptr        the offset to start with
+   * @param delimiters the delimiter for this specific kind of unquoted string
+   * @return the parsed string
+   * @throws HoconParseException thrown when the parser cannot parse the text.
+   *                             No stacktrace is given due to performance
+   *                             consideration
+   */
   ParseResult<String> parseUnquotedString(int ptr, BitSet delimiters)
       throws HoconParseException {
     var initPtr = ptr;
@@ -630,6 +872,13 @@ public final class HoconParser {
         String.copyValueOf(buf, initPtr, ptr - initPtr));
   }
 
+  /**
+   * Skips the comments in buffer and stops just before the end-of-line
+   * character.
+   * 
+   * @param ptr the pointer to start with
+   * @return the new offset
+   */
   int skipComments(int ptr) {
     if (ptr + 1 >= buf.length || buf[ptr] != '#'
         || (buf[ptr] != '/' && buf[ptr + 1] != '/'))

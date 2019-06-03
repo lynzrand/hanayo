@@ -1,10 +1,19 @@
 package cc.karenia.hanayo.types;
 
+/**
+ * Represents a boolean value in a Hocon document.
+ */
 public class HoconBoolean implements IHoconElement {
+  /**
+   * Initialize a boolean value.
+   * 
+   * @param value
+   */
   public HoconBoolean(boolean value) {
     this.value = value;
   }
 
+  /** The boolean value this object holds. */
   public boolean value;
 
   @Override

@@ -4,6 +4,7 @@ import java.util.*;
 
 import cc.karenia.hanayo.HoconParser;
 
+/** Represents a list of elements in a Hocon document. */
 public class HoconList extends ArrayList<IHoconElement>
     implements IHoconPathResolvable {
 

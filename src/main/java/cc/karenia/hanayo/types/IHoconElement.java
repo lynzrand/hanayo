@@ -12,7 +12,8 @@ public interface IHoconElement {
   HoconType getType();
 
   /**
-   * Gets the string representation of this element. Made for concatenation.
+   * Gets the string representation of this element. Intended for concatenation
+   * uses.
    * 
    * @return the string representation
    */
@@ -21,8 +22,7 @@ public interface IHoconElement {
   /**
    * Concat this element with another element
    * 
-   * @param newElement
-   *                     the new element to concat with
+   * @param newElement the new element to concat with
    * @return concat result
    */
   IHoconElement concat(IHoconElement newElement);
@@ -31,10 +31,8 @@ public interface IHoconElement {
    * Returns the string representation of this object when displayed as JSON
    * format
    * 
-   * @param baseIndent
-   *                     the base indent
-   * @param indent
-   *                     the indent added in each layer
+   * @param baseIndent the base indent
+   * @param indent     the indent added in each layer
    * @return the string representation
    */
   String toString(int baseIndent, int indent);
