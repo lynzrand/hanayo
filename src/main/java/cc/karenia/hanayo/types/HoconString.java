@@ -1,11 +1,23 @@
 package cc.karenia.hanayo.types;
 
+/**
+ * Represents a string in a Hocon document.
+ */
 public class HoconString implements IHoconElement {
+  /** The underlying string value. */
   public String value;
+  /** Is this string quoted? */
   public boolean isQuoted;
+  /** Is this string triple quoted (multiline)? */
   public boolean isMultiline;
+  /** Is this string the result of a concatenation? */
   public boolean isConcatResult;
 
+  /**
+   * Initialize a quoted string
+   * 
+   * @param value the string value
+   */
   public HoconString(String value) {
     this.value = value;
     this.isQuoted = true;
@@ -13,6 +25,13 @@ public class HoconString implements IHoconElement {
     this.isConcatResult = false;
   }
 
+  /**
+   * Initialize a string.
+   * 
+   * @param value       the underlying string value
+   * @param isQuoted    is this string quoted?
+   * @param isMultiline is this string multiline?
+   */
   public HoconString(String value, boolean isQuoted, boolean isMultiline) {
     this.value = value;
     this.isQuoted = isQuoted;
@@ -46,6 +65,14 @@ public class HoconString implements IHoconElement {
     }
   }
 
+  /**
+   * Transform this string into other formats if possible.
+   * <p>
+   * Other formats include: booleans.
+   * </p>
+   * 
+   * @return the transformed object, or the string unchanged if not applicable
+   */
   public IHoconElement transformIfPossible() {
     if (!this.isQuoted && !this.isMultiline) {
       if (value.equals("true"))
@@ -62,4 +89,28 @@ public class HoconString implements IHoconElement {
     return this.value;
   }
 
+  @Override
+  public String toString() {
+    return this.toString(0, 2);
+  }
+
+  @Override
+  public String toString(int baseIndent, int indent) {
+    if (this.isMultiline)
+      return new StringBuilder().append("\"\"\"").append(this.value)
+          .append("\"\"\"").toString();
+    else
+      return new StringBuilder().append("\"").append(this.value).append("\"")
+          .toString();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HoconString))
+      return false;
+    var other = (HoconString) obj;
+    return ((this.isConcatResult == other.isConcatResult)
+        && (this.isMultiline == other.isConcatResult)
+        && (this.isQuoted == other.isQuoted)) && this.value.equals(other.value);
+  }
 }

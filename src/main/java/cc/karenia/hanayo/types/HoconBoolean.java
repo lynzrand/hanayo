@@ -1,10 +1,19 @@
 package cc.karenia.hanayo.types;
 
+/**
+ * Represents a boolean value in a Hocon document.
+ */
 public class HoconBoolean implements IHoconElement {
+  /**
+   * Initialize a boolean value.
+   * 
+   * @param value
+   */
   public HoconBoolean(boolean value) {
     this.value = value;
   }
 
+  /** The boolean value this object holds. */
   public boolean value;
 
   @Override
@@ -38,6 +47,18 @@ public class HoconBoolean implements IHoconElement {
       return "true";
     else
       return "false";
+  }
+
+  @Override
+  public String toString(int baseIndent, int indent) {
+    return String.valueOf(this.value);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HoconBoolean))
+      return false;
+    return ((HoconBoolean) obj).value == this.value;
   }
 
 }
