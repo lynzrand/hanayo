@@ -108,7 +108,8 @@ public final class HoconParser {
    *                             No stacktrace is given due to performance
    *                             consideration
    */
-  static public IHoconElement parse(String src) throws HoconParseException {
+  static public IHoconPathResolvable parse(String src)
+      throws HoconParseException {
     // throw new RuntimeException("Method not implemented");
     return new HoconParser(src).parseDocument();
   }
@@ -210,7 +211,7 @@ public final class HoconParser {
    * @throws HoconParseException thrown when the parser cannot parse the string
    *                             a document
    */
-  public IHoconElement parseDocument() throws HoconParseException {
+  public IHoconPathResolvable parseDocument() throws HoconParseException {
     int ptr = startOffset;
     ptr = skipWhitespaceAndComments(ptr);
 
@@ -860,7 +861,7 @@ public final class HoconParser {
 
       // Avoid substitutions
       if (c == '$')
-        if (buf[ptr] == '{')
+        if (buf[ptr + 1] == '{')
           break;
 
       ptr++;

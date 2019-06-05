@@ -9,6 +9,7 @@ import java.text.ParseException;
  */
 public class ParseResult<T> {
   /** Is this parse successful? */
+  @Deprecated
   public boolean parseSuccess;
   /** The offset number after parsing this segment of string */
   public int newPtr;
