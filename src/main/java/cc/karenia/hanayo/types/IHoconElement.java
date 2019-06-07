@@ -3,7 +3,7 @@ package cc.karenia.hanayo.types;
 /**
  * The interface for every HOCON Element.
  */
-public interface IHoconElement {
+public interface IHoconElement extends Cloneable {
   /**
    * Gets the HOCON type of this element
    * 
@@ -36,4 +36,6 @@ public interface IHoconElement {
    * @return the string representation
    */
   String toString(int baseIndent, int indent);
+
+  IHoconElement clone();
 }

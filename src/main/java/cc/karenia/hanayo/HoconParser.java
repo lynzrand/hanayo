@@ -542,10 +542,10 @@ public final class HoconParser {
     var latestCommonAncestor = pathStack.get(ptr);
 
     if (sub.isDetermined)
-      return latestCommonAncestor.getPath(targetPath);
+      return latestCommonAncestor.getPath(targetPath).clone();
     else
       try {
-        return latestCommonAncestor.getPath(targetPath);
+        return latestCommonAncestor.getPath(targetPath).clone();
       } catch (Exception e) {
         return new HoconSubstitution.NullSubstitution();
       }

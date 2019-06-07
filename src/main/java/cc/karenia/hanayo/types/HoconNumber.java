@@ -141,4 +141,9 @@ public class HoconNumber implements IHoconElement {
       return false;
     return this.value.equals(((HoconNumber) obj).value);
   }
+
+  @Override
+  public HoconNumber clone() {
+    return new HoconNumber(value, isInteger);
+  }
 }

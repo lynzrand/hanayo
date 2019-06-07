@@ -11,6 +11,14 @@ public class HoconMap extends HashMap<String, IHoconElement>
     implements IHoconElement, IHoconPathResolvable {
   private static final long serialVersionUID = 1L;
 
+  public HoconMap() {
+    super();
+  }
+
+  public HoconMap(Map<String, ? extends IHoconElement> elements) {
+    super(elements);
+  }
+
   @Override
   public HoconType getType() {
     return HoconType.Map;
@@ -101,6 +109,11 @@ public class HoconMap extends HashMap<String, IHoconElement>
     sb.append('}');
 
     return sb.toString();
+  }
+
+  @Override
+  public HoconMap clone() {
+    return new HoconMap(this);
   }
 
 }

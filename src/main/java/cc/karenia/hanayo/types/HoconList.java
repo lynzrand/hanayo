@@ -8,6 +8,14 @@ import cc.karenia.hanayo.HoconParser;
 public class HoconList extends ArrayList<IHoconElement>
     implements IHoconPathResolvable {
 
+  public HoconList() {
+    super();
+  }
+
+  public HoconList(Collection<IHoconElement> elements) {
+    super(elements);
+  }
+
   @Override
   public HoconType getType() {
     return HoconType.List;
@@ -87,6 +95,11 @@ public class HoconList extends ArrayList<IHoconElement>
     sb.append(']');
 
     return sb.toString();
+  }
+
+  @Override
+  public HoconList clone() {
+    return new HoconList(this);
   }
 
 }

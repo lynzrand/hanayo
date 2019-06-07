@@ -39,6 +39,22 @@ public class HoconString implements IHoconElement {
     this.isConcatResult = false;
   }
 
+  /**
+   * Initialize a string.
+   * 
+   * @param value          the underlying string value
+   * @param isQuoted       is this string quoted?
+   * @param isMultiline    is this string multiline?
+   * @param isConcatResult is this string the result of a concatenation?
+   */
+  public HoconString(String value, boolean isQuoted, boolean isMultiline,
+      boolean isConcatResult) {
+    this.value = value;
+    this.isQuoted = isQuoted;
+    this.isMultiline = isMultiline;
+    this.isConcatResult = isConcatResult;
+  }
+
   @Override
   public HoconType getType() {
     return HoconType.String;
@@ -117,5 +133,10 @@ public class HoconString implements IHoconElement {
     return ((this.isConcatResult == other.isConcatResult)
         && (this.isMultiline == other.isConcatResult)
         && (this.isQuoted == other.isQuoted)) && this.value.equals(other.value);
+  }
+
+  @Override
+  public HoconString clone() {
+    return new HoconString(value, isQuoted, isMultiline);
   }
 }

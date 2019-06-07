@@ -12,9 +12,11 @@ public class HoconSubstitution implements IHoconElement {
   /** The path this substitution is targeting at */
   public HoconKey path;
   /**
-   * Whether this substitution is a determined substitution. Non-determined
-   * substitutions are replaced with null substitutions when resolved, while
-   * determined ones throw an error.
+   * Whether this substitution is a determined substitution.
+   * <p>
+   * Non-determined substitutions are replaced with null substitutions when
+   * resolved, while determined ones throw an error.
+   * </p>
    */
   public boolean isDetermined;
 
@@ -70,6 +72,11 @@ public class HoconSubstitution implements IHoconElement {
     return null;
   }
 
+  @Override
+  public HoconSubstitution clone()  {
+    return new HoconSubstitution(path, isDetermined);
+  }
+
   public static class NullSubstitution implements IHoconElement {
 
     @Override
@@ -90,6 +97,11 @@ public class HoconSubstitution implements IHoconElement {
     @Override
     public String toString(int baseIndent, int indent) {
       return "[Null Substitution]";
+    }
+
+    @Override
+    public NullSubstitution clone() {
+      return new NullSubstitution();
     }
 
   }

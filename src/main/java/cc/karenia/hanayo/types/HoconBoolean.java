@@ -65,4 +65,9 @@ public class HoconBoolean implements IHoconElement {
     return ((HoconBoolean) obj).value == this.value;
   }
 
+  @Override
+  public HoconBoolean clone() {
+    return new HoconBoolean(this.value);
+  }
+
 }
