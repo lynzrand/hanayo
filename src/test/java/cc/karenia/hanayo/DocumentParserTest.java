@@ -44,11 +44,12 @@ public class DocumentParserTest {
     assertEquals(outerResultValue.getType(), HoconType.Map);
     var innerResultValue = ((HoconMap) outerResultValue).get("key");
     assertEquals(innerResultValue.asString(), "value");
+    System.out.println(result.toString());
   }
 
   @Test
   public void testParseNestedArrayMapDocument() throws HoconParseException {
-    var result = HoconParser.of("{\n  key: [ 1, 2, 4, ], \n}").parseDocument();
+    var result = HoconParser.of("{\n  key [ 1, 2, 4, ], \n}").parseDocument();
     assertEquals(HoconType.Map, result.getType());
     var mapResult = (HoconMap) result;
     var outerResultValue = mapResult.get("key");
@@ -56,5 +57,19 @@ public class DocumentParserTest {
     assertEquals(HoconType.List, outerResultValue.getType());
     var innerResultValue = ((HoconList) outerResultValue).get(1);
     assertEquals("2", innerResultValue.asString());
+  }
+
+  @Test
+  public void testParseSubstitution() throws HoconParseException {
+    var result = HoconParser.of("{\n  key [ 1, 2, ${key.1} ], \n}")
+        .parseDocument();
+    assertEquals(HoconType.Map, result.getType());
+    var mapResult = (HoconMap) result;
+    var outerResultValue = mapResult.get("key");
+    System.out.println(result.toString());
+    assertEquals(HoconType.List, outerResultValue.getType());
+    var innerResultValue = ((HoconList) outerResultValue).get(2);
+    assertEquals("2", innerResultValue.asString());
+    assertEquals(HoconType.Number, innerResultValue.getType());
   }
 }

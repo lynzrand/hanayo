@@ -20,7 +20,9 @@ public class HoconList extends ArrayList<IHoconElement>
 
   @Override
   public IHoconElement concat(IHoconElement newElement) {
-    if (newElement instanceof HoconList) {
+    if (newElement instanceof HoconSubstitution.NullSubstitution) {
+      return this;
+    } else if (newElement instanceof HoconList) {
       var list = (HoconList) newElement;
       this.addAll(list);
       return this;

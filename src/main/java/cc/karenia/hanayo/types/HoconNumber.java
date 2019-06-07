@@ -115,6 +115,10 @@ public class HoconNumber implements IHoconElement {
     case Map:
     case List:
       return newElement;
+
+    case NullSubstitution:
+      return this;
+
     default:
       throw new IllegalArgumentException(String.format(
           "Cannot concat %s with %s", this.getType(), newElement.getType()));

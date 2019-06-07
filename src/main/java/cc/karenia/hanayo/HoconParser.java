@@ -454,7 +454,12 @@ public final class HoconParser {
     value = parseResult.result;
 
     while (ptr < buf.length && !ElementEndings.get(buf[ptr])) {
-      parseResult = parseValueSegment(ptr, root);
+      try {
+        parseResult = parseValueSegment(ptr, root);
+      } catch (HoconParseException.BlankString e) {
+        ptr = e.ptr;
+        continue;
+      }
 
       ptr = parseResult.newPtr;
       value = value.concat(parseResult.result);
@@ -463,7 +468,7 @@ public final class HoconParser {
     if (value.getType() == HoconType.String) {
       var strVal = (HoconString) value;
       strVal.value = strVal.value.stripTrailing();
-      strVal.transformIfPossible();
+      value = strVal.transformIfPossible();
     }
     return ParseResult.success(ptr, value);
   }
@@ -481,11 +486,14 @@ public final class HoconParser {
   ParseResult<? extends IHoconElement> parseValueSegment(int ptr,
       IHoconPathResolvable root) throws HoconParseException {
     if (Character.isWhitespace(buf[ptr])) {
+      ParseResult<HoconString> result = null;
       try {
-        var result = parseHoconString(ptr, false, false);
+        result = parseHoconString(ptr, false, false);
         return result;
+      } catch (HoconParseException.BlankString e) {
+        throw e;
       } catch (HoconParseException e) {
-        // Silently swallow error; Continue on next ones
+        // Silently swallow error
       }
       ptr = skipWhitespaceAndComments(ptr);
     }
@@ -506,6 +514,7 @@ public final class HoconParser {
         return parseHoconString(ptr, true, false);
     } else {
       return parseHoconString(ptr, false, false);
+
     }
   }
 
@@ -867,10 +876,15 @@ public final class HoconParser {
       ptr++;
     }
     if (ptr == initPtr)
-      throw new HoconParseException(String.format(
-          "Unexpected '%c' at the start of an unquoted string", buf[ptr]), ptr);
-    return ParseResult.success(ptr,
-        String.copyValueOf(buf, initPtr, ptr - initPtr));
+      throw new HoconParseException(
+          "Unexpected '%c' at the start of an unquoted string", ptr, buf[ptr]);
+
+    String stringValue = String.copyValueOf(buf, initPtr, ptr - initPtr);
+
+    if (stringValue.isBlank())
+      throw new HoconParseException.BlankString(ptr);
+
+    return ParseResult.success(ptr, stringValue);
   }
 
   /**

@@ -12,7 +12,11 @@ public class HoconParseException extends Exception {
   /** The offset in string when the error orccurred */
   public int ptr;
   /** The message of this error */
-  public String message;
+  private String message;
+
+  private Object[] params;
+
+  private boolean isFormatted = false;
 
   /**
    * Should we gather stacktraces when throwing this exception? Defaults to
@@ -31,6 +35,7 @@ public class HoconParseException extends Exception {
     this.message = message;
     this.ptr = ptr;
     this.path = path;
+    this.isFormatted = true;
   }
 
   /**
@@ -42,6 +47,38 @@ public class HoconParseException extends Exception {
   public HoconParseException(String message, int ptr) {
     this.message = message;
     this.ptr = ptr;
+    this.isFormatted = true;
+  }
+
+  /**
+   * Initialize a new exception with lazy formatting.
+   * 
+   * @param message The message to leaveoccurred
+   * @param ptr     the offset when the error occurred
+   * @param path    the path in document when the error occurred
+   * @param params  string format arguments
+   */
+  public HoconParseException(String message, int ptr, HoconKey path,
+      Object... params) {
+    this.message = message;
+    this.ptr = ptr;
+    this.path = path;
+    this.params = params;
+    this.isFormatted = false;
+  }
+
+  /**
+   * Initialize a new exception.
+   * 
+   * @param message The message to leaveoccurred
+   * @param ptr     the offset when the error occurred
+   * @param params  string format arguments
+   */
+  public HoconParseException(String message, int ptr, Object... params) {
+    this.message = message;
+    this.ptr = ptr;
+    this.params = params;
+    this.isFormatted = false;
   }
 
   /**
@@ -54,6 +91,14 @@ public class HoconParseException extends Exception {
     this.message = null;
     this.ptr = ptr;
     this.path = path.clone();
+    this.isFormatted = true;
+  }
+
+  void lazyFormat() {
+    if (!this.isFormatted) {
+      this.message = String.format(message, params);
+      this.isFormatted = true;
+    }
   }
 
   @Override
@@ -65,6 +110,7 @@ public class HoconParseException extends Exception {
 
   @Override
   public String getMessage() {
+    lazyFormat();
     if (path == null)
       return String.format("HoconParseException: %s; Occurred at pointer %d",
           message, ptr);
@@ -86,5 +132,15 @@ public class HoconParseException extends Exception {
       }
     }
     return sb.toString();
+  }
+
+  public static class BlankString extends HoconParseException {
+
+    private static final long serialVersionUID = 1L;
+
+    public BlankString(int ptr) {
+      super("Blank string", ptr);
+    }
+
   }
 }

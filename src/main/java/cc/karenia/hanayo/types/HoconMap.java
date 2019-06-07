@@ -30,7 +30,9 @@ public class HoconMap extends HashMap<String, IHoconElement>
 
   @Override
   public IHoconElement concat(IHoconElement newElement) {
-    if (newElement instanceof HoconMap) {
+    if (newElement instanceof HoconSubstitution.NullSubstitution) {
+      return this;
+    } else if (newElement instanceof HoconMap) {
       var map = (HoconMap) newElement;
       for (var kvp : map.entrySet()) {
         String key = kvp.getKey();
