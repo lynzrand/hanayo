@@ -7,81 +7,80 @@ import org.junit.*;
 import cc.karenia.hanayo.types.HoconParseException;
 
 public class HoconParserTest {
-  static {
-    HoconParseException.shouldGatherStacktrace = true;
-  }
+	static {
+		HoconParseException.shouldGatherStacktrace = true;
+	}
 
-  @Test
-  public void TestKeyParser() throws HoconParseException {
-    var charArray = "test.\"quoted\".spaced key".toCharArray();
-    var parseResult = HoconParser.parseKey(charArray, 0);
-    assertEquals(parseResult.parseSuccess, true);
-    assertEquals(parseResult.result.name, "test");
-    assertEquals(parseResult.result.next.name, "quoted");
-    assertEquals(parseResult.result.next.next.name, "spaced key");
-  }
+	@Test
+	public void TestKeyParser() throws HoconParseException {
+		// key separator . \"
+		var str = "test.\"quoted\".spaced key";
+		var parseResult = HoconParser.of(str).parseKey(0);
+		assertEquals(parseResult.parseSuccess, true);
+		assertEquals(parseResult.result.name, "test");
+		assertEquals(parseResult.result.next.name, "quoted");
+		assertEquals(parseResult.result.next.next.name, "spaced key");
+		// key separator {}//
+		String str1 = "{test.\"quoted\".spaced key}";
+		var parseResult1 = HoconParser.of(str).parseKey(0);
+		assertEquals(parseResult1.parseSuccess, true);
+		assertEquals(parseResult1.result.name, "test");
+		assertEquals(parseResult1.result.next.name, "quoted");
+		assertEquals(parseResult1.result.next.next.name, "spaced key");
+		// key separator []//
+		String str2 = "[[test.\"quoted\".spaced key]";
+		var parseResult2 = HoconParser.of(str).parseKey(0);
+		assertEquals(parseResult2.parseSuccess, true);
+		assertEquals(parseResult2.result.name, "test");
+		assertEquals(parseResult2.result.next.name, "quoted");
+		assertEquals(parseResult2.result.next.next.name, "spaced key");
 
-  @Test
-  public void TestNumberParser() throws HoconParseException {
-    var number1 = "10000 ".toCharArray();
-    var number2 = "10000e ".toCharArray();
-    var number3 = "10000e5 ".toCharArray();
-    var number4 = "10000.1 ".toCharArray();
-    var number5 = "10000.1e5 ".toCharArray();
+		// key separator value with ://
+		String str3 = "test.\"quoted\".spaced key:value";
+		var parseResult3 = HoconParser.of(str).parseKey(0);
+		assertEquals(parseResult3.parseSuccess, true);
+		assertEquals(parseResult3.result.name, "test");
+		assertEquals(parseResult3.result.next.name, "quoted");
+		assertEquals(parseResult3.result.next.next.name, "spaced key");
+		//assertEquals(parseResult3, "value");
 
-    var parseResult = HoconParser.parseNumber(number1, 0);
-    assertEquals(parseResult.result.isInteger, true);
-    assertEquals(parseResult.result.value, "10000");
-    assertEquals(parseResult.result.asInt(), 10000);
+		// key separator value with =//
+		String str4 = "test.\"quoted\".spaced key=value";
+		var parseResult4 = HoconParser.of(str).parseKey(0);
+		var parseResultV4 = HoconParser.of(str).parseValue(0, null);
+		assertEquals(parseResult4.parseSuccess, true);
+		assertEquals(parseResult4.result.name, "test");
+		assertEquals(parseResult4.result.next.name, "quoted");
+		assertEquals(parseResult4.result.next.next.name, "spaced key");
+		assertEquals(parseResultV4.result.asString(),"value");
 
-    parseResult = HoconParser.parseNumber(number2, 0);
-    assertEquals(parseResult.result.isInteger, true);
-    assertEquals(parseResult.result.value, "10000");
+	}
 
-    parseResult = HoconParser.parseNumber(number3, 0);
-    assertEquals(parseResult.result.isInteger, false);
-    assertEquals(parseResult.result.value, "10000e5");
-    assertEquals(parseResult.result.asDouble(), 1000000000d, 1);
+	@Test
+	public void testSubstitution() throws HoconParseException {
+		var sub1 = "${a.c}";
+		var parseResult = HoconParser.of(sub1).parseSubstitution(0);
+		assertEquals(parseResult.parseSuccess, true);
+		assertEquals(parseResult.result.isDetermined, true);
+		assertEquals(parseResult.result.path.name, "a");
+		assertEquals(parseResult.result.path.next.name, "c");
 
-    parseResult = HoconParser.parseNumber(number4, 0);
-    assertEquals(parseResult.result.isInteger, false);
-    assertEquals(parseResult.result.value, "10000.1");
-    assertEquals(parseResult.result.asDouble(), 10000.1, 0.001);
+		var sub2 = "${?b.c}";
+		parseResult = HoconParser.of(sub2).parseSubstitution(0);
+		assertEquals(parseResult.parseSuccess, true);
+		assertEquals(parseResult.result.isDetermined, false);
+		assertEquals(parseResult.result.path.name, "b");
+		assertEquals(parseResult.result.path.next.name, "c");
+	}
 
-    parseResult = HoconParser.parseNumber(number5, 0);
-    assertEquals(parseResult.result.isInteger, false);
-    assertEquals(parseResult.result.value, "10000.1e5");
-    assertEquals(parseResult.result.asDouble(), 1000010000d, 1);
+	@Test
+	public void testParseValueStringConcatenation() throws Throwable {
+		var valueTest = "-123abc";
+		var parseResult = HoconParser.of(valueTest).parseValueSegment(0, null).unwrapThrow();
+		var valueParseResult = HoconParser.of(valueTest).parseValue(0, null).unwrapThrow();
 
-  }
+		assertEquals(parseResult.asString(), "-123");
+		assertEquals(valueParseResult.asString(), "-123abc");
 
-  @Test
-  public void testSubstitution() throws HoconParseException {
-    var sub1 = "${a.c}".toCharArray();
-    var parseResult = HoconParser.parseSubstitution(sub1, 0);
-    assertEquals(parseResult.parseSuccess, true);
-    assertEquals(parseResult.result.isDetermined, true);
-    assertEquals(parseResult.result.path.name, "a");
-    assertEquals(parseResult.result.path.next.name, "c");
-
-    var sub2 = "${?b.c}".toCharArray();
-    parseResult = HoconParser.parseSubstitution(sub2, 0);
-    assertEquals(parseResult.parseSuccess, true);
-    assertEquals(parseResult.result.isDetermined, false);
-    assertEquals(parseResult.result.path.name, "b");
-    assertEquals(parseResult.result.path.next.name, "c");
-  }
-
-  @Test
-  public void testParseValueStringConcatenation() throws Throwable {
-    var valueTest = "-123abc".toCharArray();
-    var parseResult = HoconParser.parseValueSegment(valueTest, 0, null, null)
-        .unwrapThrow();
-    var valueParseResult = HoconParser.parseValue(valueTest, 0, null, null)
-        .unwrapThrow();
-
-    assertEquals(parseResult.asString(), "-123");
-    assertEquals(valueParseResult.asString(), "-123abc");
-
-  }
+	}
 }

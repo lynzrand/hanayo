@@ -4,8 +4,17 @@ import java.util.*;
 
 import cc.karenia.hanayo.HoconParser;
 
+/** Represents a list of elements in a Hocon document. */
 public class HoconList extends ArrayList<IHoconElement>
     implements IHoconPathResolvable {
+
+  public HoconList() {
+    super();
+  }
+
+  public HoconList(Collection<IHoconElement> elements) {
+    super(elements);
+  }
 
   @Override
   public HoconType getType() {
@@ -19,7 +28,9 @@ public class HoconList extends ArrayList<IHoconElement>
 
   @Override
   public IHoconElement concat(IHoconElement newElement) {
-    if (newElement instanceof HoconList) {
+    if (newElement instanceof HoconSubstitution.NullSubstitution) {
+      return this;
+    } else if (newElement instanceof HoconList) {
       var list = (HoconList) newElement;
       this.addAll(list);
       return this;
@@ -35,7 +46,7 @@ public class HoconList extends ArrayList<IHoconElement>
 
   @Override
   public IHoconElement getPath(String path) throws HoconParseException {
-    var key = HoconParser.parseKey(path.toCharArray(), 0).unwrap();
+    var key = HoconParser.of(path).parseKey(0).unwrap();
     return this.getPath(key);
   }
 
@@ -67,5 +78,28 @@ public class HoconList extends ArrayList<IHoconElement>
   }
 
   private static final long serialVersionUID = 6163610075084687893L;
+
+  @Override
+  public String toString(int baseIndent, int indent) {
+    var sb = new StringBuilder();
+    sb.append('[');
+    sb.append('\n');
+
+    forEach((val) -> {
+      sb.append(String.join("", Collections.nCopies(baseIndent + indent, " ")));
+      sb.append(val.toString(baseIndent + indent, indent));
+      sb.append(",\n");
+    });
+
+    sb.append(String.join("", Collections.nCopies(baseIndent, " ")));
+    sb.append(']');
+
+    return sb.toString();
+  }
+
+  @Override
+  public HoconList clone() {
+    return new HoconList(this);
+  }
 
 }
