@@ -11,27 +11,29 @@ public class NumberParserTest {
 
   @Test
   public void TestRegularNumber() throws HoconParseException {
-	  var number1 = "1000 ".toCharArray();
-	    var number2 = "+1200 ".toCharArray();
-	    var number3 = "-2000 ".toCharArray();
-	    var number4 = "521.1 ".toCharArray();
-	    var number5 = "112E3 ".toCharArray();
-	    var number6 = "121e2 ".toCharArray();
-	    var number7 = "+521.1 ".toCharArray();
-	    var number8 = "-123E4 ".toCharArray();
-	    var number9 = "+121e3 ".toCharArray();
+	  String number1 = "1000 ";
+	  String number2 = "+1200 ";
+	  String number3 = "-2000 ";
+	  String number4 = "521.1 ";
+	  String number5 = "112E3 ";
+	  String number6 = "121e2 ";
+	  String number7 = "+521.1 ";
+	  String number8 = "-123E4 ";
+	  String number9 = "+121e3 ";
 
-	    var parseResult = HoconParser.parseNumber(number1, 0);
+		HoconParser parseParse = HoconParser.of(number1);
+	    var parseResult = parseParse.parseNumber(0);
 	    assertEquals(parseResult.result.isInteger, true);
 	    assertEquals(parseResult.result.value, "1000");
 	    assertEquals(parseResult.result.asInt(), 1000);
 
-	    parseResult = HoconParser.parseNumber(number2, 0);
+	    HoconParser parseParse2 = HoconParser.of(number2);
+	    parseResult = parseParse2.parseNumber(0);
 	    assertEquals(parseResult.result.isInteger, true);
 	    assertEquals(parseResult.result.value, "+1200");
 	    assertEquals(parseResult.result.asInt(), 1200);
 
-	    parseResult = HoconParser.parseNumber(number3, 0);
+	    parseResult = HoconParser.parseNumber(0);
 	    assertEquals(parseResult.result.isInteger, true);
 	    assertEquals(parseResult.result.value, "-2000");
 	    assertEquals(parseResult.result.asInt(), -2000);
@@ -82,22 +84,5 @@ public class NumberParserTest {
 	    assertEquals(parseResult.result.isDetermined, false);
 	    assertEquals(parseResult.result.path.name, "b");
 	    assertEquals(parseResult.result.path.next.name, "c");
-  }
-
-  @Test
-  public void testNotNumber() {
-    try {
-      HoconParser.of("-aaaabbcc").parseNumber(0);
-      Assert.fail("Should not parse string preceded with minus sign");
-    } catch (HoconParseException e) {
-      assertEquals(e.ptr, 1);
-    }
-
-    try {
-      HoconParser.of("aaaabbcc").parseNumber(0);
-      Assert.fail("Should not parse string preceded with minus sign");
-    } catch (HoconParseException e) {
-      assertEquals(e.ptr, 0);
-    }
   }
 }
