@@ -16,11 +16,11 @@ public class ListParserTest {
         .unwrap();
     assertEquals(HoconType.List, result.getType());
     var element0 = result.get(0);
-    assertEquals(element0, new HoconNumber("1", true));
+    assertEquals(new HoconNumber("1", true), element0);
     var element1 = result.get(1);
-    assertEquals(element1, new HoconNumber("2", true));
+    assertEquals(new HoconNumber("2", true), element1);
     var element2 = result.get(2);
-    assertEquals(element2, new HoconString("three"));
+    assertEquals(new HoconString("three"), element2);
   }
 
   @Test
@@ -29,11 +29,11 @@ public class ListParserTest {
         .parseList(0, null).unwrap();
     assertEquals(HoconType.List, result.getType());
     var element0 = result.get(0);
-    assertEquals(element0, new HoconNumber("1", true));
+    assertEquals(new HoconNumber("1", true), element0);
     var element1 = result.get(1);
-    assertEquals(element1, new HoconNumber("3", true));
+    assertEquals(new HoconNumber("3", true), element1);
     var element2 = result.get(2);
-    assertEquals(element2, new HoconString("five", false, false));
+    assertEquals(new HoconString("five", false, false), element2);
   }
 
   @Test
@@ -42,13 +42,13 @@ public class ListParserTest {
         .parseList(0, null).unwrap();
     assertEquals(HoconType.List, result.getType());
     var element0 = result.get(0);
-    assertEquals(element0, new HoconNumber("1", true));
+    assertEquals(new HoconNumber("1", true), element0);
     var element1 = result.get(1);
-    assertEquals(element1, new HoconNumber("2", true));
+    assertEquals(new HoconNumber("2", true), element1);
     var element4 = result.get(4);
-    assertEquals(element4, new HoconString("five", false, false));
+    assertEquals(new HoconString("five", false, false), element4);
     var element5 = result.get(5);
-    assertEquals(element5, new HoconString("six", false, false));
+    assertEquals(new HoconString("six", false, false), element5);
   }
 
   @Test
@@ -58,11 +58,11 @@ public class ListParserTest {
         .parseList(0, null).unwrap();
     assertEquals(HoconType.List, result.getType());
     var element0 = result.get(0);
-    assertEquals(element0, new HoconNumber("1", true));
+    assertEquals(new HoconNumber("1", true), element0);
     var element1 = result.get(1);
-    assertEquals(element1, new HoconNumber("3", true));
+    assertEquals(new HoconNumber("3", true), element1);
     var element2 = result.get(2);
-    assertEquals(element2, new HoconString("five", false, false));
+    assertEquals(new HoconString("five", false, false), element2);
   }
 
   @Test
@@ -70,13 +70,13 @@ public class ListParserTest {
     var result = HoconParser.of("[ 1, 3, [2, 4] ]").parseList(0, null).unwrap();
     assertEquals(HoconType.List, result.getType());
     var element0 = result.get(0);
-    assertEquals(element0, new HoconNumber("1", true));
+    assertEquals(new HoconNumber("1", true), element0);
     var element1 = result.get(1);
-    assertEquals(element1, new HoconNumber("3", true));
+    assertEquals(new HoconNumber("3", true), element1);
     var element2 = result.getPath("2.0");
-    assertEquals(element2, new HoconNumber("2", true));
+    assertEquals(new HoconNumber("2", true), element2);
     var element3 = result.getPath("2.1");
-    assertEquals(element3, new HoconNumber("4", true));
+    assertEquals(new HoconNumber("4", true), element3);
   }
 
   // IndexOutOfBoundExceptions should be gathered at the root of parsing and

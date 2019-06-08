@@ -130,8 +130,7 @@ public class HoconString implements IHoconElement {
     if (!(obj instanceof HoconString))
       return false;
     var other = (HoconString) obj;
-    return ((this.isConcatResult == other.isConcatResult)
-        && (this.isMultiline == other.isConcatResult)
+    return ((this.isMultiline == other.isMultiline)
         && (this.isQuoted == other.isQuoted)) && this.value.equals(other.value);
   }
 
