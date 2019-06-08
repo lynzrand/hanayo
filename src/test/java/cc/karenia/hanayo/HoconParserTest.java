@@ -14,28 +14,25 @@ public class HoconParserTest {
   @Test
   public void TestKeyParser() throws HoconParseException {
     var str = "test.\"quoted\".spaced key";
-    var parseResult = HoconParser.of(str).parseKey(0);
-    assertEquals(parseResult.parseSuccess, true);
-    assertEquals(parseResult.result.name, "test");
-    assertEquals(parseResult.result.next.name, "quoted");
-    assertEquals(parseResult.result.next.next.name, "spaced key");
+    var parseResult = HoconParser.of(str).parseKey(0).unwrap();
+    assertEquals(parseResult.name, "test");
+    assertEquals(parseResult.next.name, "quoted");
+    assertEquals(parseResult.next.next.name, "spaced key");
   }
 
   @Test
   public void testSubstitution() throws HoconParseException {
     var sub1 = "${a.c}";
-    var parseResult = HoconParser.of(sub1).parseSubstitution(0);
-    assertEquals(parseResult.parseSuccess, true);
-    assertEquals(parseResult.result.isDetermined, true);
-    assertEquals(parseResult.result.path.name, "a");
-    assertEquals(parseResult.result.path.next.name, "c");
+    var parseResult = HoconParser.of(sub1).parseSubstitution(0).unwrap();
+    assertEquals(parseResult.isDetermined, true);
+    assertEquals(parseResult.path.name, "a");
+    assertEquals(parseResult.path.next.name, "c");
 
     var sub2 = "${?b.c}";
-    parseResult = HoconParser.of(sub2).parseSubstitution(0);
-    assertEquals(parseResult.parseSuccess, true);
-    assertEquals(parseResult.result.isDetermined, false);
-    assertEquals(parseResult.result.path.name, "b");
-    assertEquals(parseResult.result.path.next.name, "c");
+    parseResult = HoconParser.of(sub2).parseSubstitution(0).unwrap();
+    assertEquals(parseResult.isDetermined, false);
+    assertEquals(parseResult.path.name, "b");
+    assertEquals(parseResult.path.next.name, "c");
   }
 
   @Test
