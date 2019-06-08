@@ -142,6 +142,14 @@ public class HoconParseException extends Exception {
     }
   }
 
+  public static class UnexpectedCharacter extends HoconParseException {
+    private static final long serialVersionUID = 1L;
+
+    public UnexpectedCharacter(int ptr, char c) {
+      super("Unexpected character %c", ptr, c);
+    }
+  }
+
   public static class FoundComment extends HoconParseException {
     private static final long serialVersionUID = 1L;
 

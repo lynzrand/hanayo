@@ -6,6 +6,13 @@ import org.junit.Test;
 
 import cc.karenia.hanayo.types.HoconParseException;
 
+/*
+	I don't know why the file is named like this... 
+	It's named by the other team member.
+
+	Anyway, tests work.
+	- Rynco
+*/
 public class HoconLFParserTest {
 	static {
 		HoconParseException.shouldGatherStacktrace = true;

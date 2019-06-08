@@ -2,8 +2,6 @@
 
 ![](res/img/logo.png)
 
-**Hanayo is finished but not tested. Contribute by submitting test cases and commenting the code!**
-
 Hanayo is an experimental HOCON parser written in plain Java for exercising and school homework.
 
 HOCON is a human-readable config format and a superset of JSON. Specs: [HOCON Spec][spec] (that repo also hosts the official java implementation).

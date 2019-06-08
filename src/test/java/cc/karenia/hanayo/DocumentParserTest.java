@@ -4,11 +4,15 @@ import org.junit.*;
 
 import cc.karenia.hanayo.types.HoconList;
 import cc.karenia.hanayo.types.HoconMap;
+import cc.karenia.hanayo.types.HoconNumber;
 import cc.karenia.hanayo.types.HoconParseException;
 import cc.karenia.hanayo.types.HoconType;
 
 import static org.junit.Assert.*;
 
+/**
+ * Tests for document parsers
+ */
 public class DocumentParserTest {
   static {
     HoconParseException.shouldGatherStacktrace = true;
@@ -71,5 +75,30 @@ public class DocumentParserTest {
     var innerResultValue = ((HoconList) outerResultValue).get(2);
     assertEquals("2", innerResultValue.asString());
     assertEquals(HoconType.Number, innerResultValue.getType());
+  }
+
+  @Test
+  public void testParseDeterminedSubstitution() throws HoconParseException {
+    var result = HoconParser
+        .of("{\n  name: rynco, greeting: hello my name is ${name} \n}")
+        .parseDocument();
+    assertEquals(HoconType.Map, result.getType());
+    assertEquals("hello my name is rynco",
+        result.getPath("greeting").asString());
+  }
+
+  @Test
+  public void testParseUndeterminedSubstitution() throws HoconParseException {
+    var result = HoconParser.of("{\n  greeting: hello my name is ${?name} \n}")
+        .parseDocument();
+    assertEquals(HoconType.Map, result.getType());
+    assertEquals("hello my name is", result.getPath("greeting").asString());
+  }
+
+  @Test
+  public void testParseListSubstitutionConcat() throws HoconParseException {
+    var result = HoconParser.of("{\n  key: [1]\n  key: ${?key} [2] \n}")
+        .parseDocument();
+    assertEquals(new HoconNumber("2", true), result.getPath("key.1"));
   }
 }

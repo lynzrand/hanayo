@@ -1,7 +1,5 @@
 package cc.karenia.hanayo;
 
-import java.text.*;
-import java.io.*;
 import java.nio.CharBuffer;
 import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
@@ -460,6 +458,9 @@ public final class HoconParser {
       } catch (HoconParseException.FoundComment e) {
         ptr = e.ptr;
         break;
+      } catch (HoconParseException.UnexpectedCharacter e) {
+        ptr = e.ptr;
+        break;
       }
 
       ptr = parseResult.newPtr;
@@ -491,14 +492,12 @@ public final class HoconParser {
       try {
         result = parseHoconString(ptr, false, false);
         return result;
-      } catch (HoconParseException.BlankString e) {
-        throw e;
       } catch (HoconParseException.FoundComment e) {
         throw e;
       } catch (HoconParseException e) {
         // Silently swallow error
       }
-      ptr = skipWhitespaceAndComments(ptr);
+      ptr = skipWhitespace(ptr);
     }
     if (Character.isDigit(buf[ptr]) || buf[ptr] == '+' || buf[ptr] == '-') {
       return parseNumber(ptr);
@@ -883,9 +882,7 @@ public final class HoconParser {
       if (buf[ptr] == '#' || buf[ptr] == '/')
         throw new HoconParseException.FoundComment(ptr);
       else
-        throw new HoconParseException(
-            "Unexpected '%c' at the start of an unquoted string", ptr,
-            buf[ptr]);
+        throw new HoconParseException.UnexpectedCharacter(ptr, buf[ptr]);
 
     String stringValue = String.copyValueOf(buf, initPtr, ptr - initPtr);
 
