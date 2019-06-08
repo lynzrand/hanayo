@@ -135,12 +135,18 @@ public class HoconParseException extends Exception {
   }
 
   public static class BlankString extends HoconParseException {
-
     private static final long serialVersionUID = 1L;
 
     public BlankString(int ptr) {
       super("Blank string", ptr);
     }
+  }
 
+  public static class FoundComment extends HoconParseException {
+    private static final long serialVersionUID = 1L;
+
+    public FoundComment(int ptr) {
+      super("Found comment", ptr);
+    }
   }
 }

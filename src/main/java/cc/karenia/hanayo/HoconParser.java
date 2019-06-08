@@ -459,6 +459,9 @@ public final class HoconParser {
       } catch (HoconParseException.BlankString e) {
         ptr = e.ptr;
         continue;
+      } catch (HoconParseException.FoundComment e) {
+        ptr = e.ptr;
+        break;
       }
 
       ptr = parseResult.newPtr;
@@ -491,6 +494,8 @@ public final class HoconParser {
         result = parseHoconString(ptr, false, false);
         return result;
       } catch (HoconParseException.BlankString e) {
+        throw e;
+      } catch (HoconParseException.FoundComment e) {
         throw e;
       } catch (HoconParseException e) {
         // Silently swallow error
@@ -876,8 +881,12 @@ public final class HoconParser {
       ptr++;
     }
     if (ptr == initPtr)
-      throw new HoconParseException(
-          "Unexpected '%c' at the start of an unquoted string", ptr, buf[ptr]);
+      if (buf[ptr] == '#' || buf[ptr] == '/')
+        throw new HoconParseException.FoundComment(ptr);
+      else
+        throw new HoconParseException(
+            "Unexpected '%c' at the start of an unquoted string", ptr,
+            buf[ptr]);
 
     String stringValue = String.copyValueOf(buf, initPtr, ptr - initPtr);
 
