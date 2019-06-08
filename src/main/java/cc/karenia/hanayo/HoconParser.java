@@ -895,8 +895,8 @@ public final class HoconParser {
    * @return the new offset
    */
   int skipComments(int ptr) {
-    if (ptr + 1 >= buf.length && buf[ptr] != '#'
-        && (buf[ptr] != '/' && buf[ptr + 1] != '/'))
+    if (ptr + 1 >= buf.length
+        || (buf[ptr] != '#' && buf[ptr] != '/' && buf[ptr + 1] != '/'))
       return ptr;
     else {
       while (ptr < buf.length && !EolChars.get(buf[ptr]))
