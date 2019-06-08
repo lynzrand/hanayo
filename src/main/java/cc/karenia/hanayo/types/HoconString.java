@@ -120,9 +120,12 @@ public class HoconString implements IHoconElement {
     if (this.isMultiline)
       return new StringBuilder().append("\"\"\"").append(this.value)
           .append("\"\"\"").toString();
-    else
+    else if (this.isQuoted)
       return new StringBuilder().append("\"").append(this.value).append("\"")
           .toString();
+    else
+      return new StringBuilder().append("\"").append(this.value)
+          .append("\" <unquoted>").toString();
   }
 
   @Override
