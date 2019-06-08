@@ -25,5 +25,5 @@ dependencies {
 
 test { 
     dependsOn cleanTest 
-    testLogging.showStandardStreams = true 
+    // testLogging.showStandardStreams = true 
 }
