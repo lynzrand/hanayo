@@ -221,6 +221,8 @@ public final class HoconParser {
     } catch (HoconParseException e) {
       if (e.ptr != 0)
         throw e;
+    } catch (ArrayIndexOutOfBoundsException e) {
+      throw new HoconParseException("Unexpected end of file", ptr);
     }
 
     // If this document is not a map, try parsing as a list
@@ -229,6 +231,8 @@ public final class HoconParser {
     } catch (HoconParseException e) {
       if (e.ptr != 0)
         throw e;
+    } catch (ArrayIndexOutOfBoundsException e) {
+      throw new HoconParseException("Unexpected end of file", ptr);
     }
 
     // If none of these work, try parsing as bracket-less map
@@ -260,6 +264,8 @@ public final class HoconParser {
     } catch (HoconParseException e) {
       if (e.ptr != ptr)
         throw e;
+    } catch (ArrayIndexOutOfBoundsException e) {
+      throw new HoconParseException("Unexpected end of file", ptr);
     }
 
     throw new HoconParseException("Unable to parse this file as a HOCON config",
@@ -290,10 +296,6 @@ public final class HoconParser {
     pathStack.push(list);
     int index = 0;
     ParseResult<? extends IHoconElement> result;
-
-    if (root == null) {
-      root = list;
-    }
 
     while (true) {
       if (buf[ptr] == ']') {
@@ -346,10 +348,6 @@ public final class HoconParser {
     var map = new HoconMap();
     pathStack.push(map);
     ParseResult<Entry<HoconKey, IHoconElement>> result;
-
-    if (root == null) {
-      root = map;
-    }
 
     while (true) {
       if (buf[ptr] == '}') {

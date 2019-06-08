@@ -105,6 +105,13 @@ public class HoconKey {
    * @param root   the root key segment
    */
   HoconKey(List<String> keys, int offset, HoconKey root) {
+    if (keys.size() == 0) {
+      this.name = "[not-existing root]";
+      this.root = this;
+      this.next = null;
+      return;
+    }
+
     this.name = keys.get(offset);
     if (offset == 0) {
       this.root = this;
