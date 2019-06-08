@@ -511,13 +511,12 @@ public final class HoconParser {
       return ParseResult.success(subResult.newPtr,
           resolveSubstitutionOnCurrentPath(subResult.result));
     } else if (buf[ptr] == '"') {
-      if (ptr + 3 > buf.length && buf[ptr + 1] == '"' && buf[ptr + 2] == '"')
+      if (ptr + 2 < buf.length && buf[ptr + 1] == '"' && buf[ptr + 2] == '"')
         return parseHoconString(ptr, false, true);
       else
         return parseHoconString(ptr, true, false);
     } else {
       return parseHoconString(ptr, false, false);
-
     }
   }
 
@@ -756,9 +755,11 @@ public final class HoconParser {
       char c = buf[ptr];
 
       // Find end delimiter
-      if (c == '"' && buf[ptr + 1] == '"' && buf[ptr + 2] == '"') {
+      if (c == '"' && ptr + 2 < buf.length && buf[ptr + 1] == '"'
+          && buf[ptr + 2] == '"') {
         ptr += 3;
-        while (buf[ptr] == '"')
+
+        while (ptr < buf.length && buf[ptr] == '"')
           ptr++;
         break;
       }

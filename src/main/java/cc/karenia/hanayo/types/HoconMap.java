@@ -28,9 +28,13 @@ public class HoconMap extends HashMap<String, IHoconElement>
   public void setOrReplace(HoconKey key, IHoconElement el) {
     if (key.next != null) {
       var val = this.get(key.name);
-      if (val == null || !(val instanceof HoconMap))
+      if (key.name.matches("\\d+")
+          && (val == null || !(val instanceof IHoconPathResolvable))) {
+        this.put(key.name, val = new HoconList());
+      } else if (val == null) {
         this.put(key.name, val = new HoconMap());
-      ((HoconMap) val).setOrReplace(key.next, el);
+      }
+      ((IHoconPathResolvable) val).setOrReplace(key.next, el);
     } else {
       this.put(key.name, el);
     }
@@ -46,9 +50,15 @@ public class HoconMap extends HashMap<String, IHoconElement>
         String key = kvp.getKey();
         if (this.containsKey(key)) {
           IHoconElement value = kvp.getValue();
-          this.put(key, this.get(key).concat(value));
+          // Concatenating nested maps is an undefined behavior in the
+          // official document. Merging them seems to be the best choice for
+          // now.
+          if (value instanceof HoconMap)
+            this.put(key, this.get(key).concat(value));
+          else
+            this.put(key, value);
         } else {
-          this.put(kvp.getKey(), kvp.getValue());
+          this.put(key, kvp.getValue());
         }
       }
       return this;
