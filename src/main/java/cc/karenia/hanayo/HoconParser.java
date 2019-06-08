@@ -899,7 +899,7 @@ public final class HoconParser {
         && (buf[ptr] != '/' && buf[ptr + 1] != '/'))
       return ptr;
     else {
-      while (!EolChars.get(buf[ptr]) && ptr < buf.length)
+      while (ptr < buf.length && !EolChars.get(buf[ptr]))
         ptr++;
       return ptr;
     }
